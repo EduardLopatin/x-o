@@ -38,7 +38,7 @@ function Game() {
             block.style.display = 'inline-block';
             block.style.fontSize = '80px';
         }
-    };  
+    };
 }
 function action() {
     if(this.nodeName == 'DIV'){
@@ -75,7 +75,8 @@ function checkIt() {
         (document.getElementById('1').innerHTML == 'x' && document.getElementById('4').innerHTML == 'x' && document.getElementById('7').innerHTML == 'x')||
         (document.getElementById('2').innerHTML == 'x' && document.getElementById('5').innerHTML == 'x' && document.getElementById('8').innerHTML == 'x')
     ){
-        console.log('x win');
+        alert('Player 1 WIN!');
+
     }if(
         (document.getElementById('0').innerHTML == 'o' && document.getElementById('1').innerHTML == 'o' && document.getElementById('2').innerHTML == 'o')||
         (document.getElementById('3').innerHTML == 'o' && document.getElementById('4').innerHTML == 'o' && document.getElementById('5').innerHTML == 'o')||
@@ -86,10 +87,12 @@ function checkIt() {
         (document.getElementById('1').innerHTML == 'o' && document.getElementById('4').innerHTML == 'o' && document.getElementById('7').innerHTML == 'x')||
         (document.getElementById('2').innerHTML == 'o' && document.getElementById('5').innerHTML == 'o' && document.getElementById('8').innerHTML == 'x')
     ){
-        console.log('0 win');
+        alert('Player 2 WIN!');
+
     }
     if(game.status == 9){
-        console.log('nichia');
+        alert('Friendship WIN!');
+
     }
 }
 
