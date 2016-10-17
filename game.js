@@ -1,100 +1,105 @@
 var game = new Game();
+console.log(game);
 
-game.createField();
 
 function Game() {
-    this.log = [];
-    this.PlayerTurn = 1;
-    this.status = 0;
-    this.createField = function() {
-
+    var vm = this;
+    this.startScreenOptions = {};
+    this.gameOptions = [];
+    this.restart = function () {
+        document.body.innerHTML = '';
+        this.startScreenOptions = {};
+        vm.gameOptions = [];
+        vm.startScreenCreator();
+    };
+    this.startGame = function() {
+        vm.gameOptions.playerStep = 1;
+        var target = document.getElementById("numberOfCellsId");
+        vm.startScreenOptions.selectedCells =  target.options[target.selectedIndex].value;
+        console.log(vm.startScreenOptions.selectedCells);
+        document.body.innerHTML = '';
+        vm.fieldCreate();
+        console.log(game);
+    };
+    this.fieldCreate = function () {
+        var Cells = this.startScreenOptions.selectedCells;
+        var container = this.elementFactory(document.body,'div');
+        container.style.width = Cells * 80 + 'px';
+        container.style.height = Cells * 80 + 'px';
+        container.style.margin = 'auto';
+        for(var j = 0; j <= Cells -1; j++){
+            var line = [];
+            for (var i = 1; i <= Cells; i++ ){
+                var block = vm.elementFactory(container, 'div');
+                block.id = i;
+                block.onclick = vm.action;
+                block.innerHTML = '&nbsp;';
+                this.setStyleForBlock(block, Cells);
+                line.push(block);
+            }
+            this.gameOptions.push(line);
+        }
+        var restartButton = this.elementFactory(document.body,'button');
+        restartButton.innerHTML = 'Restart';
+        restartButton.onclick = this.restart;
+        this.gameOptions.restart = restartButton;
+    };
+    
+    this.elementFactory = function(parent,tag) {
+        var element = document.createElement(tag);
+        parent.appendChild(element);
+        return element;
+    };
+    this.startScreenCreator = function(){
         document.body.style.textAlign = 'center';
         document.body.style.marginTop = '100px';
-        createElement('h1','x/o game');
-        createElement('br');
-
-        for ( var i = 0; i <= 8; i++ ){
-
-            if ( i == 3 || i == 6 ) {
-                createElement('br');
-            }
-            var element = createElement('div', '&nbsp;', i);
-            getStyle(element);
+        this.startScreenOptions.topic = this.elementFactory(document.body,'h1');
+        this.startScreenOptions.topic.innerHTML = 'Select size of field';
+        this.startScreenOptions.numberOfCells  = document.createElement('select');
+        this.startScreenOptions.numberOfCells.style.marginRight = '10px';
+        this.startScreenOptions.numberOfCells.id = 'numberOfCellsId';
+        for( var i = 3; i <= 10; i++){
+            var optionElement = this.elementFactory(this.startScreenOptions.numberOfCells,'option');
+            optionElement.value = i;
+            optionElement.text = i + 'x' + i;
         }
-        function createElement(tag, text, i) {
-
-            var element = document.createElement(tag);
-            element.setAttribute('id', i);
-            element.innerHTML = text;
-            element.onclick = action;
-            document.body.appendChild(element);
-            return element;
-        }
-        function getStyle(block) {
-            block.style.width = '100px';
-            block.style.height = '100px';
-            block.style.border = 'solid';
-            block.style.borderColor = 'gray';
-            block.style.display = 'inline-block';
-            block.style.fontSize = '80px';
-        }
+        document.body.appendChild(this.startScreenOptions.numberOfCells);
+        var startButton = this.elementFactory(document.body,'button');
+        startButton.innerHTML = 'Start game';
+        startButton.onclick = this.startGame;
     };
-}
-function action() {
-    if(this.nodeName == 'DIV'){
-        var turn = step(this);
-        this.innerHTML = turn;
-        var toLog = {
-            id: this.id,
-            value: turn
-        };
-        game.log.push(toLog);
-        console.log(game);
-        game.status++;
-        checkIt()
-    }
-}
-function step(element) {
-    if (game.PlayerTurn == 1){
-        game.PlayerTurn = 2;
-        element.onclick = null;
-        return 'x'
-    }
-    game.PlayerTurn = 1;
-    element.onclick = null;
-    return 'o'
-}
-function checkIt() {
-    if(
-        (document.getElementById('0').innerHTML == 'x' && document.getElementById('1').innerHTML == 'x' && document.getElementById('2').innerHTML == 'x')||
-        (document.getElementById('3').innerHTML == 'x' && document.getElementById('4').innerHTML == 'x' && document.getElementById('5').innerHTML == 'x')||
-        (document.getElementById('6').innerHTML == 'x' && document.getElementById('7').innerHTML == 'x' && document.getElementById('8').innerHTML == 'x')||
-        (document.getElementById('0').innerHTML == 'x' && document.getElementById('4').innerHTML == 'x' && document.getElementById('8').innerHTML == 'x')||
-        (document.getElementById('2').innerHTML == 'x' && document.getElementById('4').innerHTML == 'x' && document.getElementById('6').innerHTML == 'x')||
-        (document.getElementById('0').innerHTML == 'x' && document.getElementById('3').innerHTML == 'x' && document.getElementById('6').innerHTML == 'x')||
-        (document.getElementById('1').innerHTML == 'x' && document.getElementById('4').innerHTML == 'x' && document.getElementById('7').innerHTML == 'x')||
-        (document.getElementById('2').innerHTML == 'x' && document.getElementById('5').innerHTML == 'x' && document.getElementById('8').innerHTML == 'x')
-    ){
-        alert('Player 1 WIN!');
+    this.setStyleForBlock = function (block, cells) {
+        block.style.width = cells* 69 / cells + 'px';
+        block.style.height = cells* 69 / cells + 'px';
+        block.style.border = 'solid';
+        block.style.borderColor = 'gray';
+        block.style.display = 'inline-block';
+        block.style.fontSize = cells* 50 / cells + 'px';
+    };
 
-    }if(
-        (document.getElementById('0').innerHTML == 'o' && document.getElementById('1').innerHTML == 'o' && document.getElementById('2').innerHTML == 'o')||
-        (document.getElementById('3').innerHTML == 'o' && document.getElementById('4').innerHTML == 'o' && document.getElementById('5').innerHTML == 'o')||
-        (document.getElementById('6').innerHTML == 'o' && document.getElementById('7').innerHTML == 'o' && document.getElementById('8').innerHTML == 'o')||
-        (document.getElementById('0').innerHTML == 'o' && document.getElementById('4').innerHTML == 'o' && document.getElementById('8').innerHTML == 'o')||
-        (document.getElementById('2').innerHTML == 'o' && document.getElementById('4').innerHTML == 'o' && document.getElementById('6').innerHTML == 'o')||
-        (document.getElementById('0').innerHTML == 'o' && document.getElementById('3').innerHTML == 'o' && document.getElementById('6').innerHTML == 'x')||
-        (document.getElementById('1').innerHTML == 'o' && document.getElementById('4').innerHTML == 'o' && document.getElementById('7').innerHTML == 'x')||
-        (document.getElementById('2').innerHTML == 'o' && document.getElementById('5').innerHTML == 'o' && document.getElementById('8').innerHTML == 'x')
-    ){
-        alert('Player 2 WIN!');
+    this.startScreenCreator();
+    this.gameOptions.playerStep = 1;
+    this.step = function () {
+         if(this.gameOptions.playerStep == 1){
+             this.gameOptions.playerStep = 2;
+             return 'x';
+         }else {
+             this.gameOptions.playerStep = 1;
+             return 'o';
+         }
+    };
+    this.action = function() {
+        if(this.nodeName == 'DIV'){
 
-    }
-    if(game.status == 9){
-        alert('Friendship WIN!');
+         this.innerHTML = vm.step();
+            this.onclick = null;
 
+        }
     }
+
+
 }
+
 
 
 
