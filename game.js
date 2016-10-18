@@ -5,16 +5,17 @@ console.log(game);
 function Game() {
     var vm = this;
     function createGameOptions() {
-        vm.gameOptions = [];
-        vm.gameOptions.restartButton = {};
-        vm.gameOptions.field = [];
-        vm.gameOptions.statusInfo = {};
-        vm.gameOptions.container = {};
+        vm.options = [];
+        vm.options.stepCounter = 0;
+        vm.options.restartButton = {};
+        vm.options.field = [];
+        vm.options.turnStatusInfo = {};
+        vm.options.container = {};
     }
     createGameOptions();
     this.startScreenOptions = {};
-    this.statusInfoChange = function () {
-    this.gameOptions.statusInfo.innerHTML = 'Player ' + vm.gameOptions.playerStep + ' turn'
+    this.changeTurnStatusInfo = function () {
+    this.options.turnStatusInfo.innerHTML = 'Player ' + vm.options.playerStep + ' turn'
 
 }
     this.restart = function () {
@@ -24,7 +25,7 @@ function Game() {
         vm.startScreenCreator();
     };
     this.startGame = function() {
-        vm.gameOptions.playerStep = 1;
+        vm.options.playerStep = 1;
         var target = document.getElementById("numberOfCellsId");
         vm.startScreenOptions.selectedCells =  target.options[target.selectedIndex].value;
         console.log(vm.startScreenOptions.selectedCells);
@@ -34,17 +35,17 @@ function Game() {
     };
     this.fieldCreate = function () {
         var Cells = this.startScreenOptions.selectedCells;
-        this.gameOptions.container = this.elementFactory(document.body,'div');
+        this.options.container = this.elementFactory(document.body,'div');
 
-        this.gameOptions.container.style.width = Cells * 80 + 'px';
-        this.gameOptions.container.style.height = Cells * 80 + 'px';
-        this.gameOptions.container.style.margin = 'auto';
+        this.options.container.style.width = Cells * 80 + 'px';
+        this.options.container.style.height = Cells * 80 + 'px';
+        this.options.container.style.margin = 'auto';
         for( var j = 0; j <= Cells - 1; j++ ){
             var line = [];
             for ( var i = 0; i <= Cells - 1; i++ ){
                 var block =
                 {
-                    element: vm.elementFactory(this.gameOptions.container, 'div'),
+                    element: vm.elementFactory(this.options.container, 'div'),
                     position: j.toString() + i.toString(),
                     value:''
                 };
@@ -54,15 +55,15 @@ function Game() {
                 this.setStyleForBlock(block.element, Cells);
                 line.push(block);
             }
-            this.gameOptions.field.push(line);
+            this.options.field.push(line);
         }
-        this.gameOptions.restartButton = this.elementFactory(document.body,'button');
-        this.gameOptions.restartButton.innerHTML = 'Restart';
-        this.gameOptions.restartButton.onclick = this.restart;
+        this.options.restartButton = this.elementFactory(document.body,'button');
+        this.options.restartButton.innerHTML = 'Restart';
+        this.options.restartButton.onclick = this.restart;
 
-        this.gameOptions.statusInfo = this.elementFactory(document.body,'h3');
-        this.gameOptions.statusInfo.id = 'statusInfo';
-        this.gameOptions.statusInfo.innerHTML = 'Player ' + vm.gameOptions.playerStep + ' turn'
+        this.options.turnStatusInfo = this.elementFactory(document.body,'h3');
+        this.options.turnStatusInfo.id = 'turnStatusInfo';
+        this.options.turnStatusInfo.innerHTML = 'Player ' + vm.options.playerStep + ' turn'
     };
     
     this.elementFactory = function(parent,tag) {
@@ -72,7 +73,7 @@ function Game() {
     };
     this.startScreenCreator = function(){
         document.body.style.textAlign = 'center';
-        document.body.style.marginTop = '100px';
+        document.body.style.marginTop = '80px';
         this.startScreenOptions.topic = this.elementFactory(document.body,'h1');
         this.startScreenOptions.topic.innerHTML = 'Select size of field';
         this.startScreenOptions.numberOfCells  = document.createElement('select');
@@ -98,34 +99,48 @@ function Game() {
     };
 
     this.startScreenCreator();
-
-    this.checkGame = function () {
-        for(var i = 0; i <= vm.gameOptions.field.length - 1; i++){
-            vm.gameOptions.field.forEach(function ( item, j, arr ){
-                if(arr[i][j].value == 'x')
-                console.log(arr[i][j].value);
+    this.checkXorY = function (xOrY) {
+        var xOrYturn = 0;
+        for(var i = 0; i <= vm.options.field.length - 1; i++){
+            vm.options.field[i].forEach(function (item,i,arr) {
+                if(item.value == xOrY){
+                    xOrYturn++
+                }
             })
+            if(xOrYturn == vm.startScreenOptions.selectedCells){
+                return console.log(xOrY + ' won!')
+            }
+            xOrYturn = 0;
         }
+
+    };
+    this.checkGame = function () {
+if(this.options.stepCounter >= this.startScreenOptions.selectedCells){
+    this.checkXorY('x');
+    this.checkXorY('o');
+}
+
+
 
     };
 
     this.step = function () {
-         if(this.gameOptions.playerStep == 1){
-             this.gameOptions.playerStep = 2;
+         if(this.options.playerStep == 1){
+             this.options.playerStep = 2;
              return 'x';
          }else {
-             this.gameOptions.playerStep = 1;
+             this.options.playerStep = 1;
              return 'o';
          }
     };
     this.action = function() {
         if(this.nodeName == 'DIV'){
             this.innerHTML = vm.step();
-            vm.statusInfoChange();
-            // console.log(this);
+            vm.options.stepCounter++;
+            vm.changeTurnStatusInfo();
             var blockPositionX = this.id[0];
             var blockPositionY = this.id[1];
-            vm.gameOptions.field[blockPositionX][blockPositionY].value = this.innerHTML;
+            vm.options.field[blockPositionX][blockPositionY].value = this.innerHTML;
             vm.checkGame();
             this.onclick = null;
         }
