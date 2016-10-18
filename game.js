@@ -11,7 +11,7 @@ function Game() {
         vm.options.startScreen = {};
         vm.options.stepCounter = 0;
         vm.options.restartButton = {};
-        vm.options.field = [];
+        vm.gameField = [];
         vm.options.turnStatusInfo = {};
         vm.options.container = {};
     };
@@ -35,17 +35,15 @@ function Game() {
     };
     this.fieldCreate = function () {
         var Cells = this.options.startScreen.selectedCells;
-        this.options.container = this.elementFactory(document.body,'div');
-
-        this.options.container.style.width = Cells * 80 + 'px';
-        this.options.container.style.height = Cells * 80 + 'px';
-        this.options.container.style.margin = 'auto';
+        var container = this.elementFactory(document.body,'div');
+        container.style.width = Cells * 80 + 'px';
+        container.style.height = Cells * 80 + 'px';
+        container.style.margin = 'auto';
         for( var j = 0; j <= Cells - 1; j++ ){
             var line = [];
             for ( var i = 0; i <= Cells - 1; i++ ){
-                var block =
-                {
-                    element: vm.elementFactory(this.options.container, 'div'),
+                var block = {
+                    element: vm.elementFactory(container, 'div'),
                     position: j.toString() + i.toString(),
                     value:''
                 };
@@ -55,13 +53,14 @@ function Game() {
                 this.setStyleForBlock(block.element, Cells);
                 line.push(block);
             }
-            this.options.field.push(line);
+            this.gameField.push(line);
         }
-        this.options.restartButton = this.elementFactory(document.body,'button');
-        this.options.restartButton.innerHTML = 'Restart';
-        this.options.restartButton.onclick = this.restart;
+        var restartButton = this.elementFactory(document.body,'button');
+        restartButton.innerHTML = 'Restart';
+        restartButton.onclick = this.restart;
 
         this.options.turnStatusInfo = this.elementFactory(document.body,'h3');
+        this.options.turnStatusInfo.style.color = 'red';
         this.options.turnStatusInfo.innerHTML = 'Player ' + vm.options.playerStep + ' turn'
     };
     this.elementFactory = function(parent,tag) {
@@ -102,7 +101,7 @@ function Game() {
     this.checkVertical = function (player) {
         var count = 0;
         for(var i = 0; i <=vm.options.startScreen.selectedCells - 1; i++){
-            vm.options.field.forEach(function (item) {
+            vm.gameField.forEach(function (item) {
                 if(item[i].value == player){
                     count++
                 }
@@ -119,8 +118,8 @@ function Game() {
     };
     this.checkHorizontal = function (player) {
         var count = 0;
-        for(var i = 0; i <= vm.options.field.length - 1; i++){
-            vm.options.field[i].forEach(function (item,i,arr) {
+        for(var i = 0; i <= vm.gameField.length - 1; i++){
+            vm.gameField[i].forEach(function (item,i,arr) {
                 if(item.value == player){
                     count++
                 }
@@ -137,8 +136,8 @@ function Game() {
     this.checkRightDiagonal = function (player) {
         var rightDiagonalCount = 0;
         var rightDiagonal =[];
-        for(var i = 0;i<=vm.options.field.length - 1; i++){
-            rightDiagonal.push(vm.options.field[i].slice());
+        for(var i = 0;i<=vm.gameField.length - 1; i++){
+            rightDiagonal.push(vm.gameField[i].slice());
             rightDiagonal[i].reverse();
             if(rightDiagonal[i][i].value == player){
                 rightDiagonalCount++
@@ -153,7 +152,7 @@ function Game() {
     };
     this.checkLeftDiagonal = function (player) {
         var leftDiagonalCount = 0;
-        var leftDiagonal = vm.options.field;
+        var leftDiagonal = vm.gameField;
 
         for(var i = 0; i <= leftDiagonal.length - 1; i++){
             if(leftDiagonal[i][i].value == player){
@@ -196,16 +195,19 @@ function Game() {
             vm.changeTurnStatusInfo();
             var blockPositionX = this.id[0];
             var blockPositionY = this.id[1];
-            vm.options.field[blockPositionX][blockPositionY].value = this.innerHTML;
+            vm.gameField[blockPositionX][blockPositionY].value = this.innerHTML;
             this.onclick = null;
             vm.checkGame();
+
         }
         function step() {
             if(vm.options.playerStep == 1){
                 vm.options.playerStep = 2;
+                vm.options.turnStatusInfo.style.color = 'blue';
                 return 'x';
             }else {
                 vm.options.playerStep = 1;
+                vm.options.turnStatusInfo.style.color = 'red';
                 return 'o';
             }
         };
