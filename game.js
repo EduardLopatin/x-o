@@ -5,7 +5,7 @@ console.log(game);
 function Game() {
     var vm = this;
 
-    this.createGameOptions = function() {
+    function createGameOptions() {
         vm.options = {};
         vm.result = '';
         vm.options.startScreen = {};
@@ -15,14 +15,14 @@ function Game() {
         vm.options.turnStatusInfo = {};
         vm.options.container = {};
     };
-    this.createGameOptions();
+    createGameOptions();
     this.changeTurnStatusInfo = function () {
         this.options.turnStatusInfo.innerHTML = 'Player ' + vm.options.playerStep + ' turn'
 
     }
     this.restart = function () {
         document.body.innerHTML = '';
-        vm.createGameOptions();
+        createGameOptions();
         vm.createStartScreen();
     };
     this.start = function() {
@@ -50,7 +50,7 @@ function Game() {
                     value:''
                 };
                 block.element.id = j.toString() + i.toString();
-                block.element.onclick = vm.action;
+                block.element.onclick = action;
                 block.element.innerHTML = '&nbsp;';
                 this.setStyleForBlock(block.element, Cells);
                 line.push(block);
@@ -97,47 +97,77 @@ function Game() {
         block.style.fontSize = cells* 50 / cells + 'px';
     };
     this.createStartScreen();
-    this.checkHorizontal = function (palyer) {
+
+
+    this.checkVertical = function (player) {
         var count = 0;
-        for(var i = 0; i <= vm.options.field.length - 1; i++){
-            vm.options.field[i].forEach(function (item,i,arr) {
-                if(item.value == palyer){
+        for(var i = 0; i <=vm.options.startScreen.selectedCells - 1; i++){
+            vm.options.field.forEach(function (item) {
+                if(item[i].value == player){
                     count++
                 }
             });
             if(count == vm.options.startScreen.selectedCells){
-                console.log(palyer + ' won!');
-                vm.result = palyer;
+                console.log(player + ' won!');
+                vm.result = player;
+                break;
+            }
+            count = 0;
+        }
+
+
+    };
+    this.checkHorizontal = function (player) {
+        var count = 0;
+        for(var i = 0; i <= vm.options.field.length - 1; i++){
+            vm.options.field[i].forEach(function (item,i,arr) {
+                if(item.value == player){
+                    count++
+                }
+            });
+            if(count == vm.options.startScreen.selectedCells){
+                console.log(player + ' won!');
+                vm.result = player;
                 break;
             }
             count = 0;
         }
 
     };
-    this.checkDiagonal = function (palyer) {
-        var count = 0;
+    this.checkRightDiagonal = function (player) {
+        var rightDiagonalCount = 0;
+        var rightDiagonal =[];
         for(var i = 0;i<=vm.options.field.length - 1; i++){
-            console.log(vm.options.field[i][i].position);
+            rightDiagonal.push(vm.options.field[i].slice());
+            rightDiagonal[i].reverse();
+            if(rightDiagonal[i][i].value == player){
+                rightDiagonalCount++
+            }
+            if(rightDiagonalCount == vm.options.startScreen.selectedCells){
+                console.log(player + ' won!');
+                vm.result = player;
+                rightDiagonalCount = 0;
+                break;
+            }
         }
     };
-    this.checkVertical = function (palyer) {
-        var count = 0;
-          for(var i = 0; i <=vm.options.startScreen.selectedCells - 1; i++){
-              vm.options.field.forEach(function (item) {
-                  if(item[i].value == palyer){
-                      count++
-                  }
-              });
-              if(count == vm.options.startScreen.selectedCells){
-                  console.log(palyer + ' won!');
-                  vm.result = palyer;
-                  break;
-              }
-                count = 0;
-          }
+    this.checkLeftDiagonal = function (player) {
+        var leftDiagonalCount = 0;
+        var leftDiagonal = vm.options.field;
 
-
+        for(var i = 0; i <= leftDiagonal.length - 1; i++){
+            if(leftDiagonal[i][i].value == player){
+                leftDiagonalCount++
+            }
+            if(leftDiagonalCount == vm.options.startScreen.selectedCells){
+                console.log(player + ' won!');
+                vm.result = player;
+                leftDiagonalCount = 0;
+                break;
+            }
+        }
     };
+
 
     this.showResult = function (winner) {
         alert(winner+"-Player WON!");
@@ -149,13 +179,17 @@ function Game() {
             this.checkHorizontal('o');
             this.checkVertical('x');
             this.checkVertical('o');
+            this.checkLeftDiagonal('x');
+            this.checkLeftDiagonal('o');
+            this.checkRightDiagonal('x');
+            this.checkRightDiagonal('o');
         }
         if(this.result == 'x'|| this.result == 'o'){
-            this.showResult(vm.result);
+            this.showResult(vm.result)
         }
 
     };
-    this.action = function() {
+     function action() {
         if(this.nodeName == 'DIV'){
             this.innerHTML = step();
             vm.options.stepCounter++;
