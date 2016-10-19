@@ -164,7 +164,6 @@
                 alert(winner+"-Player WON!");
                 this.restart();
             };
-
             this.checkGame = function () {
                 if(this.options.stepCounter >= this.options.startScreen.selectedCells){
                     this.checkHorizontal('x');
@@ -187,11 +186,11 @@
             };
             function action() {
                 if(this.nodeName == 'DIV'){
-                    this.innerHTML = step();
                     vm.options.stepCounter++;
                     vm.changeTurnStatusInfo();
                     var blockPositionX = this.id[0];
                     var blockPositionY = this.id[1];
+                    vm.gameField[blockPositionX][blockPositionY].element.innerHTML = step();
                     vm.gameField[blockPositionX][blockPositionY].value = this.innerHTML;
                     this.onclick = null;
                     vm.checkGame();
