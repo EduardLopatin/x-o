@@ -1,11 +1,11 @@
-// (function () {
+(function () {
     function Game() {
             this.gameField = [];
         }
-        Game.prototype.createField = function (cells,action) {
+        Game.prototype.createField = function (cells, lineSize, action) {
             var container = Game.prototype.elementFactory(document.body,'div');
-            container.style.width = cells * 80 + 'px';
-            container.style.height = cells * 80 + 'px';
+            container.style.width = lineSize + 'px';
+            container.style.height = lineSize + 'px';
             container.style.margin = 'auto';
             for( var j = 0; j <= cells - 1; j++ ){
                 var line = [];
@@ -17,39 +17,39 @@
                     };
                     block.element.id = j.toString() + i.toString();
                     block.element.onclick = action;
-                    block.element.innerHTML = '&nbsp;';
+                    // block.element.innerHTML = '&nbsp;';
                     line.push(block);
                 }
                 this.gameField.push(line);
             }
             return container
         };
+        Game.prototype.setStyleForBlock = function (cells, lineSize, array) {
+    array.forEach(function (item) {
+        item.forEach(function (item) {
+            var borderSize = 1;
+            item.element.style.border = 'solid ' + borderSize + 'px';
+            item.element.style.width = (lineSize / cells) - borderSize*2 + 'px';
+            item.element.style.height = (lineSize / cells) - borderSize*2 + 'px';
+            item.element.style.borderColor = 'gray';
+            item.element.style.float = 'left';
+            item.element.style.fontSize = 400/cells + 'px';
+        });
+    });
+};
         Game.prototype.elementFactory = function(parent,tag) {
         var element = document.createElement(tag);
         parent.appendChild(element);
         return element;
     };
-        Game.prototype.setStyleForBlock = function (cells,array) {
-            array.forEach(function (item) {
-                item.forEach(function (item) {
-                    item.element.style.border = 'solid';
-                    item.element.style.borderColor = 'gray';
-                    item.element.style.width = cells* 69 / cells + 'px';
-                    item.element.style.height = cells* 69 / cells + 'px';
-                    item.element.style.border = 'solid';
-                    item.element.style.borderColor = 'gray';
-                    item.element.style.display = 'inline-block';
-                    item.element.style.fontSize = cells* 50 / cells + 'px';
-        });
-    });
-};
-
 
     function XoGame() {
         Game.call(this);
         var vm = this;
         var options = {
-            startScreen: {}
+            startScreen: {},
+            stepCounter: 0,
+            result: ''
         };
          function createStartScreen(minField,maxField){
             document.body.style.textAlign = 'center';
@@ -68,151 +68,156 @@
             var startButton = vm.elementFactory(document.body,'button');
             startButton.innerHTML = 'Start game';
             startButton.onclick = start;
-             console.log(options);
          };
-        createStartScreen(10,30);
+        createStartScreen(3,10);
          function start() {
-            options['playerStep'] = 1;
+           options['playerStep'] = 1;
             var target = document.getElementById("numberOfCellsId");
             options.startScreen['selectedCells'] =  target.options[target.selectedIndex].value;
             document.body.innerHTML = '';
-            vm.createField(options.startScreen.selectedCells)
-            vm.setStyleForBlock(options.startScreen.selectedCells,vm.gameField)
+            options['lineSize'] = Math.floor(window.innerWidth/3);
+            vm.createField(options.startScreen.selectedCells, options.lineSize, action);
+            vm.setStyleForBlock(options.startScreen.selectedCells,options.lineSize, vm.gameField);
+            options['bar'] = vm.elementFactory(document.body,'h1');
+             TurnStatusInfo();
+             options.bar.style.color = 'red'
+        };
+        function action() {
+            if(this.nodeName == 'DIV'){
+                options.stepCounter++;
+                var blockPositionX = this.id[0];
+                var blockPositionY = this.id[1];
+                vm.gameField[blockPositionX][blockPositionY].element.innerHTML = step();
+                vm.gameField[blockPositionX][blockPositionY].value = this.innerHTML;
+                TurnStatusInfo();
+                this.onclick = null;
+                checkGame();
+
+            }
+            function step() {
+                if(options.playerStep == 1){
+                    options.playerStep = 2;
+                    options.bar.style.color = 'blue';
+                    return 'x';
+                }else {
+                    options.playerStep = 1;
+                    options.bar.style.color = 'red';
+                    return 'o';
+                }
+            };
+        }
+        function TurnStatusInfo () {
+            options.bar.innerHTML = 'Player ' + options.playerStep + ' turn'
+        }
+
+        function checkVertical (player) {
+            var count = 0;
+            for(var i = 0; i <= options.startScreen.selectedCells - 1; i++){
+                vm.gameField.forEach(function (item) {
+                    if(item[i].value == player){
+                        count++
+                    }
+                });
+                if(count == options.startScreen.selectedCells){
+
+                    options.result = player;
+                    break;
+                }
+                count = 0;
+            }
+
 
         };
+        function checkHorizontal(player) {
+            var count = 0;
+            for(var i = 0; i <= vm.gameField.length - 1; i++){
+                vm.gameField[i].forEach(function (item,i,arr) {
+                    if(item.value == player){
+                        count++
+                    }
+                });
+                if(count == options.startScreen.selectedCells){
 
-        // this.checkVertical = function (player) {
-        //     var count = 0;
-        //     for(var i = 0; i <=vm.options.startScreen.selectedCells - 1; i++){
-        //         vm.gameField.forEach(function (item) {
-        //             if(item[i].value == player){
-        //                 count++
-        //             }
-        //         });
-        //         if(count == vm.options.startScreen.selectedCells){
-        //
-        //             vm.result = player;
-        //             break;
-        //         }
-        //         count = 0;
-        //     }
-        //
-        //
-        // };
-        // this.checkHorizontal = function (player) {
-        //     var count = 0;
-        //     for(var i = 0; i <= vm.gameField.length - 1; i++){
-        //         vm.gameField[i].forEach(function (item,i,arr) {
-        //             if(item.value == player){
-        //                 count++
-        //             }
-        //         });
-        //         if(count == vm.options.startScreen.selectedCells){
-        //
-        //             vm.result = player;
-        //             break;
-        //         }
-        //         count = 0;
-        //     }
-        //
-        // };
-        // this.checkRightDiagonal = function (player) {
-        //     var rightDiagonalCount = 0;
-        //     var rightDiagonal =[];
-        //     for(var i = 0;i<=vm.gameField.length - 1; i++){
-        //         rightDiagonal.push(vm.gameField[i].slice());
-        //         rightDiagonal[i].reverse();
-        //         if(rightDiagonal[i][i].value == player){
-        //             rightDiagonalCount++
-        //         }
-        //         if(rightDiagonalCount == vm.options.startScreen.selectedCells){
-        //
-        //             vm.result = player;
-        //             rightDiagonalCount = 0;
-        //             break;
-        //         }
-        //     }
-        // };
-        // this.checkLeftDiagonal = function (player) {
-        //     var leftDiagonalCount = 0;
-        //     var leftDiagonal = vm.gameField;
-        //
-        //     for(var i = 0; i <= leftDiagonal.length - 1; i++){
-        //         if(leftDiagonal[i][i].value == player){
-        //             leftDiagonalCount++
-        //         }
-        //         if(leftDiagonalCount == vm.options.startScreen.selectedCells){
-        //
-        //             vm.result = player;
-        //             leftDiagonalCount = 0;
-        //             break;
-        //         }
-        //     }
-        // };
-        // this.showResult = function (winner) {
-        //     alert(winner+"-Player WON!");
-        //     this.restart();
-        // };
-        // this.checkGame = function () {
-        //     if(this.options.stepCounter >= this.options.startScreen.selectedCells){
-        //         this.checkHorizontal('x');
-        //         this.checkHorizontal('o');
-        //         this.checkVertical('x');
-        //         this.checkVertical('o');
-        //         this.checkLeftDiagonal('x');
-        //         this.checkLeftDiagonal('o');
-        //         this.checkRightDiagonal('x');
-        //         this.checkRightDiagonal('o');
-        //     }
-        //     if( (this.options.stepCounter == this.options.startScreen.selectedCells * this.options.startScreen.selectedCells) && vm.result == '' ){
-        //         alert('friendship WON!');
-        //         vm.restart();
-        //     }
-        //     if(this.result == 'x'|| this.result == 'o'){
-        //         this.showResult(vm.result)
-        //     }
-        //
-        // };
-        // function action() {
-        //     if(this.nodeName == 'DIV'){
-        //         vm.options.stepCounter++;
-        //         vm.changeTurnStatusInfo();
-        //         var blockPositionX = this.id[0];
-        //         var blockPositionY = this.id[1];
-        //         vm.gameField[blockPositionX][blockPositionY].element.innerHTML = step();
-        //         vm.gameField[blockPositionX][blockPositionY].value = this.innerHTML;
-        //         this.onclick = null;
-        //         vm.checkGame();
-        //
-        //     }
-        //     function step() {
-        //         if(vm.options.playerStep == 1){
-        //             vm.options.playerStep = 2;
-        //             vm.options.turnStatusInfo.style.color = 'blue';
-        //             return 'x';
-        //         }else {
-        //             vm.options.playerStep = 1;
-        //             vm.options.turnStatusInfo.style.color = 'red';
-        //             return 'o';
-        //         }
-        //     };
-        //
-        // }
-        // this.changeTurnStatusInfo = function () {
-        //     this.options.turnStatusInfo.innerHTML = 'Player ' + vm.options.playerStep + ' turn'
-        //
-        // }
-        // this.restart = function () {
-        //     document.body.innerHTML = '';
-        //     createGameOptions();
-        //     vm.createStartScreen();
-        // };
+                    options.result = player;
+                    break;
+                }
+                count = 0;
+            }
+
+        };
+        function checkRightDiagonal(player) {
+            var rightDiagonalCount = 0;
+            var rightDiagonal =[];
+            for(var i = 0;i<=vm.gameField.length - 1; i++){
+                rightDiagonal.push(vm.gameField[i].slice());
+                rightDiagonal[i].reverse();
+                if(rightDiagonal[i][i].value == player){
+                    rightDiagonalCount++
+                }
+                if(rightDiagonalCount == options.startScreen.selectedCells){
+
+                    options.result = player;
+                    rightDiagonalCount = 0;
+                    break;
+                }
+            }
+        };
+        function checkLeftDiagonal(player) {
+            var leftDiagonalCount = 0;
+            var leftDiagonal = vm.gameField;
+
+            for(var i = 0; i <= leftDiagonal.length - 1; i++){
+                if(leftDiagonal[i][i].value == player){
+                    leftDiagonalCount++
+                }
+                if(leftDiagonalCount == options.startScreen.selectedCells){
+
+                    options.result = player;
+                    leftDiagonalCount = 0;
+                    break;
+                }
+            }
+        };
+        function showResult(winner) {
+            alert(winner+"-Player WON!");
+            restart();
+        };
+        function checkGame() {
+            if(options.stepCounter >= options.startScreen.selectedCells){
+                checkHorizontal('x');
+                checkHorizontal('o');
+                checkVertical('x');
+                checkVertical('o');
+                checkLeftDiagonal('x');
+                checkLeftDiagonal('o');
+                checkRightDiagonal('x');
+                checkRightDiagonal('o');
+            }
+            if( (options.stepCounter == options.startScreen.selectedCells * options.startScreen.selectedCells) && options.result == '' ){
+                alert('friendship WON!');
+                restart();
+            }
+            if(options.result == 'x'|| options.result == 'o'){
+                showResult(options.result)
+            }
+
+        };
+         function restart() {
+            document.body.innerHTML = '';
+            createStartScreen(3,10);
+            options = {};
+            vm.gameField = [];
+             options = {
+                 startScreen: {},
+                 stepCounter: 0,
+                 result: ''
+             };
+        };
 
     }
     XoGame.prototype = Object.create(Game.prototype);
     var xoGame = new XoGame();
-    console.log(xoGame);
-// })();
+})();
 
 
 
