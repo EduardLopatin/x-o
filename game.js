@@ -1,9 +1,7 @@
 (function () {
-    function Game() {
-            this.gameField = [];
-        }
-        Game.prototype.createField = function (cells, lineSize, action) {
-            var container = Game.prototype.elementFactory(document.body,'div');
+    function Game() {}
+        Game.prototype.createField = function (cells, lineSize, action, array, parentElement) {
+            var container = Game.prototype.elementFactory(parentElement,'div');
             container.style.width = lineSize + 'px';
             container.style.height = lineSize + 'px';
             container.style.margin = 'auto';
@@ -20,7 +18,7 @@
                     // block.element.innerHTML = '&nbsp;';
                     line.push(block);
                 }
-                this.gameField.push(line);
+                array.push(line);
             }
             return container
         };
@@ -33,7 +31,7 @@
             item.element.style.height = (lineSize / cells) - borderSize*2 + 'px';
             item.element.style.borderColor = 'gray';
             item.element.style.float = 'left';
-            item.element.style.fontSize = 400/cells + 'px';
+            item.element.style.fontSize = lineSize/cells +  'px';
         });
     });
 };
@@ -44,7 +42,8 @@
     };
 
     function XoGame() {
-        Game.call(this);
+        document.body.innerHTML = '';
+        var gameField = [];
         var vm = this;
         var options = {
             startScreen: {},
@@ -75,9 +74,9 @@
             var target = document.getElementById("numberOfCellsId");
             options.startScreen['selectedCells'] =  target.options[target.selectedIndex].value;
             document.body.innerHTML = '';
-            options['lineSize'] = Math.floor(window.innerWidth/3);
-            vm.createField(options.startScreen.selectedCells, options.lineSize, action);
-            vm.setStyleForBlock(options.startScreen.selectedCells,options.lineSize, vm.gameField);
+            options['lineSize'] = Math.floor( window.innerWidth / 3 );
+            vm.createField(options.startScreen.selectedCells, options.lineSize, action, gameField,document.body);
+            vm.setStyleForBlock(options.startScreen.selectedCells,options.lineSize, gameField);
             options['bar'] = vm.elementFactory(document.body,'h1');
              TurnStatusInfo();
              options.bar.style.color = 'red'
@@ -87,8 +86,8 @@
                 options.stepCounter++;
                 var blockPositionX = this.id[0];
                 var blockPositionY = this.id[1];
-                vm.gameField[blockPositionX][blockPositionY].element.innerHTML = step();
-                vm.gameField[blockPositionX][blockPositionY].value = this.innerHTML;
+                gameField[blockPositionX][blockPositionY].element.innerHTML = step();
+                gameField[blockPositionX][blockPositionY].value = this.innerHTML;
                 TurnStatusInfo();
                 this.onclick = null;
                 checkGame();
@@ -113,7 +112,7 @@
         function checkVertical (player) {
             var count = 0;
             for(var i = 0; i <= options.startScreen.selectedCells - 1; i++){
-                vm.gameField.forEach(function (item) {
+                gameField.forEach(function (item) {
                     if(item[i].value == player){
                         count++
                     }
@@ -130,8 +129,8 @@
         };
         function checkHorizontal(player) {
             var count = 0;
-            for(var i = 0; i <= vm.gameField.length - 1; i++){
-                vm.gameField[i].forEach(function (item,i,arr) {
+            for(var i = 0; i <= gameField.length - 1; i++){
+                gameField[i].forEach(function (item,i,arr) {
                     if(item.value == player){
                         count++
                     }
@@ -148,8 +147,8 @@
         function checkRightDiagonal(player) {
             var rightDiagonalCount = 0;
             var rightDiagonal =[];
-            for(var i = 0;i<=vm.gameField.length - 1; i++){
-                rightDiagonal.push(vm.gameField[i].slice());
+            for(var i = 0;i<=gameField.length - 1; i++){
+                rightDiagonal.push(gameField[i].slice());
                 rightDiagonal[i].reverse();
                 if(rightDiagonal[i][i].value == player){
                     rightDiagonalCount++
@@ -164,7 +163,7 @@
         };
         function checkLeftDiagonal(player) {
             var leftDiagonalCount = 0;
-            var leftDiagonal = vm.gameField;
+            var leftDiagonal = gameField;
 
             for(var i = 0; i <= leftDiagonal.length - 1; i++){
                 if(leftDiagonal[i][i].value == player){
@@ -206,7 +205,7 @@
             document.body.innerHTML = '';
             createStartScreen(3,10);
             options = {};
-            vm.gameField = [];
+            gameField = [];
              options = {
                  startScreen: {},
                  stepCounter: 0,
@@ -216,14 +215,47 @@
 
     }
     XoGame.prototype = Object.create(Game.prototype);
-    var xoGame = new XoGame();
+
+
+    function SeaWarGame() {
+        var playerField = [];
+        var enemyField = [];
+        var options = {};
+        var vm = this;
+        function startGame() {
+            document.getElementById('startGame').onclick = newGame;
+
+
+
+        }
+        startGame();
+        function newGame() {
+            getCellSize();
+            //hide start Screen
+            document.getElementById('startScreen').style.display = 'none'
+            generateField(playerField,'playerField');
+            generateField(enemyField,'enemyField');
+
+        };
+        function generateField(array,parentElementID) {
+            var lineSize = Math.floor(window.innerWidth / 3);
+            vm.createField(
+                options.cellSize,
+                lineSize,
+                '',
+                array,
+                document.getElementById(parentElementID));
+            vm.setStyleForBlock(options.cellSize, lineSize, array);
+
+
+        }
+        function getCellSize() {
+            var target = document.getElementById('fieldSizeSelector');
+            options['cellSize'] = target.options[target.selectedIndex].value;
+        }
+    }
+    SeaWarGame.prototype = Object.create(Game.prototype);
+    // var xoGame = new XoGame();
+    var seaWarGame = new SeaWarGame();
+
 })();
-
-
-
-
-
-
-
-
-

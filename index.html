@@ -3,8 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <title>x/o game</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div id = 'startScreen'>
+    <div>
+        <h1>Select size of sea</h1>
+    </div>
+    <div>
+        <label>
+            <select id="fieldSizeSelector">
+                <option value="10">10x10</option>
+                <option value="20">20x20</option>
+                <option value="30">30x30</option>
+            </select>
+        </label>
+        <button id="startGame">Start game</button>
+    </div>
+</div>
+<div id="Game">
+    <div id="playerField" style="float: left; margin-right: 50px">
+
+    </div>
+    <div id="enemyField" style="float: left">
+
+    </div>
+</div>
 <script src="game.js"></script>
 </body>
 </html>
