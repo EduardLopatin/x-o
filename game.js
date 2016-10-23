@@ -216,36 +216,62 @@
     }
     XoGame.prototype = Object.create(Game.prototype);
 
-
     function SeaWarGame() {
         var playerField = [];
         var enemyField = [];
         var options = {};
+        options.markingStep = 1;
         var vm = this;
         function startGame() {
             document.getElementById('startGame').onclick = newGame;
-
-
-
         }
         startGame();
         function newGame() {
             getCellSize();
             //hide start Screen
-            document.getElementById('startScreen').style.display = 'none'
+            document.getElementById('startScreen').style.display = 'none';
+            //add marking lines
+            options.cellSize = +options.cellSize + options.markingStep;
+
             generateField(playerField,'playerField');
             generateField(enemyField,'enemyField');
-
+            markField(enemyField);
+            markField(playerField);
         };
+
+        function genAlphabet(cellSize) {
+            var start = 'А'.charCodeAt();
+            var end = 'Я'.charCodeAt();
+            var array = [];
+            for(start; start <= end; start++){
+                array.push(String.fromCharCode(start));
+                if(array.length == cellSize - 2){
+                    break;
+                }
+            }
+            array.splice(6,0,'Ё');
+            return array;
+        }
+        function markField(field) {
+            var alphabetArray = genAlphabet(options.cellSize);
+            alphabetArray.unshift('for[0][0] element');
+            field.forEach(function(item,index,array){
+                array[index][0].element.innerHTML = index;
+                array[index][0].element.style.borderColor = 'white';
+                array[0][index].element.innerHTML = alphabetArray[index];
+                array[0][index].element.style.borderColor = 'white';
+                array[0][0].element.innerHTML = '';
+            })
+        }
         function generateField(array,parentElementID) {
-            var lineSize = Math.floor(window.innerWidth / 3);
+            var lineWidth = Math.floor(window.innerWidth / 3);
             vm.createField(
                 options.cellSize,
-                lineSize,
+                lineWidth,
                 '',
                 array,
                 document.getElementById(parentElementID));
-            vm.setStyleForBlock(options.cellSize, lineSize, array);
+            vm.setStyleForBlock(options.cellSize, lineWidth, array);
 
 
         }
