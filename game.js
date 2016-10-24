@@ -1,41 +1,43 @@
 (function () {
     function Game() {}
-        Game.prototype.createField = function (cells, lineSize, action, array, parentElement) {
-            var container = Game.prototype.elementFactory(parentElement,'div');
-            container.style.width = lineSize + 'px';
-            container.style.height = lineSize + 'px';
-            container.style.margin = 'auto';
-            for( var j = 0; j <= cells - 1; j++ ){
-                var line = [];
-                for ( var i = 0; i <= cells - 1; i++ ){
-                    var block = {
-                        element: Game.prototype.elementFactory(container, 'div'),
-                        position: j.toString() + i.toString(),
-                        value:''
-                    };
-                    block.element.id = j.toString() + i.toString();
-                    block.element.onclick = action;
-                    // block.element.innerHTML = '&nbsp;';
-                    line.push(block);
-                }
-                array.push(line);
+    Game.prototype.createField = function (cells, lineSize, action, array, parentElement) {
+        var container = Game.prototype.elementFactory(parentElement,'div');
+        container.style.width = lineSize + 'px';
+        container.style.height = lineSize + 'px';
+        container.style.margin = 'auto';
+        for( var j = 0; j <= cells - 1; j++ ){
+            var line = [];
+            for ( var i = 0; i <= cells - 1; i++ ){
+                var block = {
+                    element: Game.prototype.elementFactory(container, 'div'),
+                    position: i.toString() + j.toString(),
+                    x: i,
+                    y: j,
+                    value:''
+                };
+                block.element.id = j.toString() + i.toString();
+                block.element.onclick = action;
+                // block.element.innerHTML = '&nbsp;';
+                line.push(block);
             }
-            return container
-        };
-        Game.prototype.setStyleForBlock = function (cells, lineSize, array) {
-    array.forEach(function (item) {
-        item.forEach(function (item) {
-            var borderSize = 1;
-            item.element.style.border = 'solid ' + borderSize + 'px';
-            item.element.style.width = (lineSize / cells) - borderSize*2 + 'px';
-            item.element.style.height = (lineSize / cells) - borderSize*2 + 'px';
-            item.element.style.borderColor = 'gray';
-            item.element.style.float = 'left';
-            item.element.style.fontSize = lineSize/cells +  'px';
+            array.push(line);
+        }
+        return container
+    };
+    Game.prototype.setStyleForBlock = function (cells, lineSize, array) {
+        array.forEach(function (item) {
+            item.forEach(function (item) {
+                var borderSize = 1;
+                item.element.style.border = 'solid ' + borderSize + 'px';
+                item.element.style.width = (lineSize / cells) - borderSize*2 + 'px';
+                item.element.style.height = (lineSize / cells) - borderSize*2 + 'px';
+                item.element.style.borderColor = 'gray';
+                item.element.style.float = 'left';
+                item.element.style.fontSize = lineSize/cells +  'px';
+            });
         });
-    });
-};
-        Game.prototype.elementFactory = function(parent,tag) {
+    };
+    Game.prototype.elementFactory = function(parent,tag) {
         var element = document.createElement(tag);
         parent.appendChild(element);
         return element;
@@ -50,7 +52,7 @@
             stepCounter: 0,
             result: ''
         };
-         function createStartScreen(minField,maxField){
+        function createStartScreen(minField,maxField){
             document.body.style.textAlign = 'center';
             document.body.style.marginTop = '80px';
             options.startScreen['topic'] = vm.elementFactory(document.body,'h1');
@@ -67,10 +69,10 @@
             var startButton = vm.elementFactory(document.body,'button');
             startButton.innerHTML = 'Start game';
             startButton.onclick = start;
-         };
+        };
         createStartScreen(3,10);
-         function start() {
-           options['playerStep'] = 1;
+        function start() {
+            options['playerStep'] = 1;
             var target = document.getElementById("numberOfCellsId");
             options.startScreen['selectedCells'] =  target.options[target.selectedIndex].value;
             document.body.innerHTML = '';
@@ -78,8 +80,8 @@
             vm.createField(options.startScreen.selectedCells, options.lineSize, action, gameField,document.body);
             vm.setStyleForBlock(options.startScreen.selectedCells,options.lineSize, gameField);
             options['bar'] = vm.elementFactory(document.body,'h1');
-             TurnStatusInfo();
-             options.bar.style.color = 'red'
+            TurnStatusInfo();
+            options.bar.style.color = 'red'
         };
         function action() {
             if(this.nodeName == 'DIV'){
@@ -201,16 +203,16 @@
             }
 
         };
-         function restart() {
+        function restart() {
             document.body.innerHTML = '';
             createStartScreen(3,10);
             options = {};
             gameField = [];
-             options = {
-                 startScreen: {},
-                 stepCounter: 0,
-                 result: ''
-             };
+            options = {
+                startScreen: {},
+                stepCounter: 0,
+                result: ''
+            };
         };
 
     }
@@ -221,6 +223,12 @@
         var enemyField = [];
         var options = {};
         options.markingStep = 1;
+        options.ships = {
+            decks4ship: 1,
+            decks3ship: 2,
+            decks2ship: 3,
+            decks1ship: 4
+        }
         var vm = this;
         function startGame() {
             document.getElementById('startGame').onclick = newGame;
@@ -232,12 +240,28 @@
             document.getElementById('startScreen').style.display = 'none';
             //add marking lines
             options.cellSize = +options.cellSize + options.markingStep;
-
             generateField(playerField,'playerField');
             generateField(enemyField,'enemyField');
             markField(enemyField);
             markField(playerField);
-        };
+            options.button = vm.elementFactory(document.getElementById('enemyField'),'button');
+            options.button.innerHTML = 'gen';
+            options.button.onclick = genShips
+        }
+
+        function dropRandomShip(field, shipSize, quantity) {
+            var positiveLine = field.length - shipSize;
+            var randomX = getRandom(1, field.length);
+            var randomY = getRandom(1, field.length);
+
+            field[randomX][randomY];
+        }
+        function genShips() {
+            dropRandomShip(playerField,4)
+        }
+        function getRandom(min, max) {
+            return Math.floor(Math.random() * (max - min)) + min;
+        }
 
         function genAlphabet(cellSize) {
             var start = 'А'.charCodeAt();
