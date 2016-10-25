@@ -10,9 +10,10 @@
             for ( var i = 0; i <= cells - 1; i++ ){
                 var block = {
                     element: Game.prototype.elementFactory(container, 'div'),
-                    position: i.toString() + j.toString(),
-                    x: i,
+                    position: j.toString() + i.toString() ,
                     y: j,
+                    x: i,
+
                     value:''
                 };
                 block.element.id = j.toString() + i.toString();
@@ -223,12 +224,7 @@
         var enemyField = [];
         var options = {};
         options.markingStep = 1;
-        options.ships = {
-            decks4ship: 1,
-            decks3ship: 2,
-            decks2ship: 3,
-            decks1ship: 4
-        }
+        options.ships = [];
         var vm = this;
         function startGame() {
             document.getElementById('startGame').onclick = newGame;
@@ -250,19 +246,91 @@
         }
 
         function dropRandomShip(field, shipSize, quantity) {
-            var positiveLine = field.length - shipSize;
+            var shipCount = 0;
             var randomX = getRandom(1, field.length);
             var randomY = getRandom(1, field.length);
+            var randomPoint = field[randomX][randomY];
+        //    here!!!
+        }
+        function putShip(stepCoords) {
+            stepCoords.forEach(function (item, index, array) {
+                item.deck = {
+                    shipSize : array.length,
+                    deckNumber: index,
+                    isAlive: true
+                };
+                item.element.style.backgroundColor = 'blue'
+            });
+            options.ships.push(stepCoords)
+        }
+        function putHorizontalDeadZone(ship, field) {
+            var StartX = ship[0].x - 1;
+            var StartY = ship[0].y - 1;
+            for(var y = 0; y <= 2; y++){
+                for(var x = 0; x <= ship.length + 1; x++){
+                    if((StartY + y) < field.length && (StartX + x) < field.length && !field[StartY + y][StartX + x].hasOwnProperty('deck')){
+                        field[StartY + y][StartX + x].deck = 'deadZone';
+                        field[StartY + y][StartX + x].element.style.backgroundColor = 'red';
+                    }
+                }
+            }
 
-            field[randomX][randomY];
+        }
+        function putVerticalDeadZone(ship, field) {
+            var StartX = ship[0].x - 1;
+            var StartY = ship[0].y - 1;
+            for(var y = 0; y <= ship.length + 1; y++){
+                for(var x = 0; x <= 2; x++){
+                    if((StartY + y) < field.length && (StartX + x) < field.length && !field[StartY + y][StartX + x].hasOwnProperty('deck')){
+                        field[StartY + y][StartX + x].deck = 'deadZone';
+                        field[StartY + y][StartX + x].element.style.backgroundColor = 'red';
+                    }
+                }
+            }
+
+        }
+        function stepRightCheck(field, shipSize, point) {
+            var stepCoords = [];
+            if(point.x <= (field.length - shipSize)){
+                for(var step = point.x; step <= (point.x + shipSize - 1); step++){
+                    var stepPoint = field[point.y][step];
+                    if(checkPoint(stepPoint)){
+                        stepCoords.push(stepPoint);
+                    }
+                }
+                if(stepCoords.length == shipSize){
+                    return stepCoords
+                }
+            }
+            return false
+        }
+        function stepDownCheck(field, shipSize, point) {
+            var stepCoords = [];
+            if(point.y <= (field.length - shipSize)){
+                for(var step = point.y; step <= (point.y + shipSize - 1); step++){
+                    var stepPoint = field[step][point.x];
+                    if(checkPoint(stepPoint)){
+                        stepCoords.push(stepPoint);
+                    }
+                }
+                if(stepCoords.length == shipSize){
+                    return stepCoords
+                }
+            }
+            return false
+        }
+        function checkPoint(point) {
+            if(point.hasOwnProperty('deck')){
+                return false
+            }
+            return true
         }
         function genShips() {
-            dropRandomShip(playerField,4)
+            dropRandomShip(playerField,2)
         }
         function getRandom(min, max) {
             return Math.floor(Math.random() * (max - min)) + min;
         }
-
         function genAlphabet(cellSize) {
             var start = 'А'.charCodeAt();
             var end = 'Я'.charCodeAt();
