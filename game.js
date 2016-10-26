@@ -18,7 +18,6 @@
                 };
                 block.element.id = j.toString() + i.toString();
                 block.element.onclick = action;
-                // block.element.innerHTML = '&nbsp;';
                 line.push(block);
             }
             array.push(line);
@@ -220,9 +219,8 @@
     XoGame.prototype = Object.create(Game.prototype);
 
     function SeaWarGame() {
-        var playerField = [];
-        var enemyField = [];
         var options = {};
+        options.playerField = [];
         options.markingStep = 1;
         options.ships = [];
         var vm = this;
@@ -236,21 +234,41 @@
             document.getElementById('startScreen').style.display = 'none';
             //add marking lines
             options.cellSize = +options.cellSize + options.markingStep;
-            generateField(playerField,'playerField');
-            generateField(enemyField,'enemyField');
-            markField(enemyField);
-            markField(playerField);
-            options.button = vm.elementFactory(document.getElementById('enemyField'),'button');
-            options.button.innerHTML = 'gen';
-            options.button.onclick = genShips
+            generateField(options.playerField,'playerField');
+            markField(options.playerField);
+            genMarine(options.playerField, options.cellSize);
         }
 
-        function dropRandomShip(field, shipSize, quantity) {
-            var shipCount = 0;
-            var randomX = getRandom(1, field.length);
-            var randomY = getRandom(1, field.length);
-            var randomPoint = field[randomX][randomY];
-        //    here!!!
+        function genMarine(field, cellSize) {
+            for(var i = 0; i < 4; i++){
+                genShip(field, 3);
+                console.log(i);
+            }
+
+        }
+        function genShip(field, shipSize) {
+            do{
+                var point = getRandomPoint(field);
+                checkPoint(point);
+            } while (point == false);
+            do{
+                var isRight = stepRightCheck(field, shipSize, point);
+                var isDown = stepDownCheck(field, shipSize, point);
+                var direction = chooseDirection(isRight, isDown);
+            } while (direction == false);
+
+            var newShip = putShip(direction.checker);
+            if(direction.stepTo == 'right'){
+                putHorizontalDeadZone(newShip, field)
+            }else {
+                putVerticalDeadZone(newShip, field)
+            }
+            options.ships.push(newShip);
+        }
+        function getRandomPoint(field) {
+            var randomX = getRandom(1, field.length - 1);
+            var randomY = getRandom(1, field.length - 1);
+            return checkPoint(field[randomX][randomY]);
         }
         function putShip(stepCoords) {
             stepCoords.forEach(function (item, index, array) {
@@ -261,7 +279,7 @@
                 };
                 item.element.style.backgroundColor = 'blue'
             });
-            options.ships.push(stepCoords)
+            return stepCoords
         }
         function putHorizontalDeadZone(ship, field) {
             var StartX = ship[0].x - 1;
@@ -323,13 +341,25 @@
             if(point.hasOwnProperty('deck')){
                 return false
             }
-            return true
+            return point
         }
-        function genShips() {
-            dropRandomShip(playerField,2)
+        function chooseDirection(rightChecker, downChecker) {
+            var rightOrDown = getRandom(0,1);
+            var rightDirection = {
+                checker: rightChecker,
+                stepTo: 'right'
+            };
+            var downDirection = {
+                checker: downChecker,
+                stepTo: 'down'
+            };
+            if(rightChecker && downChecker){
+               return rightOrDown? rightDirection : downDirection;
+            }
+            return rightChecker? rightDirection: downChecker? downDirection: false;
         }
         function getRandom(min, max) {
-            return Math.floor(Math.random() * (max - min)) + min;
+            return min + Math.floor(Math.random() * (max + 1 - min));
         }
         function genAlphabet(cellSize) {
             var start = 'А'.charCodeAt();

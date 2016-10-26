@@ -2,3 +2,9 @@ body{
     margin-top: 100px;
     text-align: center;
 }
+#Game{
+    text-align: center
+}
+#playerField{
+    margin: 0 auto;
+}
