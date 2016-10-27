@@ -1,50 +1,70 @@
 (function () {
     function Game() {}
-    Game.prototype.createField = function (cells, lineSize, action, array, parentElement) {
-        var container = Game.prototype.elementFactory(parentElement,'div');
-        container.style.width = lineSize + 'px';
-        container.style.height = lineSize + 'px';
+    Game.prototype.createContainer = function (lineSize) {
+        var container = document.createElement('div');
+        var sizeInPx = lineSize + 'px';
+        container.style.width = sizeInPx;
+        container.style.height = sizeInPx;
         container.style.margin = 'auto';
-        for( var j = 0; j <= cells - 1; j++ ){
-            var line = [];
-            for ( var i = 0; i <= cells - 1; i++ ){
-                var block = {
-                    element: Game.prototype.elementFactory(container, 'div'),
-                    position: j.toString() + i.toString() ,
-                    y: j,
-                    x: i,
-
-                    value:''
-                };
-                block.element.id = j.toString() + i.toString();
-                block.element.onclick = action;
-                line.push(block);
-            }
-            array.push(line);
-        }
         return container
     };
-    Game.prototype.setStyleForBlock = function (cells, lineSize, array) {
-        array.forEach(function (item) {
-            item.forEach(function (item) {
-                var borderSize = 1;
-                item.element.style.border = 'solid ' + borderSize + 'px';
-                item.element.style.width = (lineSize / cells) - borderSize*2 + 'px';
-                item.element.style.height = (lineSize / cells) - borderSize*2 + 'px';
-                item.element.style.borderColor = 'gray';
-                item.element.style.float = 'left';
-                item.element.style.fontSize = lineSize/cells +  'px';
-            });
-        });
+    Game.prototype.createFieldBlocks = function (cells, lineSize, fieldBlocks) {
+        for( var y = 0; y <= cells - 1; y++ ){
+            var line = [];
+            for ( var x = 0; x <= cells - 1; x++ ){
+                var block = {
+                    element: document.createElement('div'),
+                    y: y,
+                    x: x,
+                    value: ''
+                };
+                block.element.y = y;
+                block.element.x = x;
+                Game.prototype.setStyleForBlocks(cells,lineSize,block);
+                line.push(block);
+            }
+            fieldBlocks.push(line);
+        }
     };
-    Game.prototype.elementFactory = function(parent,tag) {
-        var element = document.createElement(tag);
-        parent.appendChild(element);
-        return element;
+    Game.prototype.setStyleForBlocks = function (cells, lineSize, block) {
+        var borderSize = 1;
+        var item = block.element.style;
+        var size = (lineSize / cells) - borderSize*2 + 'px';
+        item.border = 'solid ' + borderSize + 'px';
+        item.borderColor = 'gray';
+        item.width = size;
+        item.height = size;
+        item.float = 'left';
+        item.fontSize = lineSize/cells + 'px';
+    };
+    Game.prototype.createField = function (cells, lineSize, fieldBlocks, target) {
+        if(arguments.length == 3){
+            target = document.body;
+        }
+        var container = Game.prototype.createContainer(lineSize);
+
+
+        Game.prototype.createFieldBlocks(cells, lineSize, fieldBlocks);
+        for(var y = 0; y<= fieldBlocks.length - 1; y++){
+            for(var x = 0; x <= fieldBlocks.length - 1; x++){
+                container.appendChild(fieldBlocks[y][x].element)
+            }
+        }
+        target.appendChild(container);
+    };
+    Game.prototype.setActionOnFieldBlocks = function (fieldBlocks, action) {
+        for(var y = 0; y<= fieldBlocks.length - 1; y++){
+            for(var x = 0; x <= fieldBlocks.length - 1; x++){
+               fieldBlocks[y][x].element.onclick = action
+            }
+        }
+    }
+    Game.prototype.clearDocumentBody = function () {
+        document.body.innerHTML = '';
     };
 
     function XoGame() {
-        document.body.innerHTML = '';
+        this.clearDocumentBody();
         var gameField = [];
         var vm = this;
         var options = {
@@ -52,44 +72,64 @@
             stepCounter: 0,
             result: ''
         };
-        function createStartScreen(minField,maxField){
+        options.playerStep = 1;
+        options.lineSize = Math.floor( window.innerWidth / 3 );
+        createStartScreen(3,10);
+        function createStartScreen(minField, maxField){
+            createTopic()
+            createSelectorOfFieldSize(minField, maxField)
+            createStartButton()
+        }
+        function start() {
+            takeValueOfFieldSizeSelector();
+            vm.clearDocumentBody();
+            vm.createField(options.startScreen.selectedCells, options.lineSize, gameField);
+            vm.setActionOnFieldBlocks(gameField, action);
+            createStatusBar()
+        };
+
+        function createTopic() {
             document.body.style.textAlign = 'center';
             document.body.style.marginTop = '80px';
-            options.startScreen['topic'] = vm.elementFactory(document.body,'h1');
+            options.startScreen.topic = document.createElement('h1');
+            document.body.appendChild(options.startScreen.topic);
             options.startScreen.topic.innerHTML = 'Select size of field';
-            options.startScreen['numberOfCells']  = document.createElement('select');
+        }
+        function createSelectorOfFieldSize(minField, maxField) {
+            options.startScreen.numberOfCells = document.createElement('select');
             options.startScreen.numberOfCells.style.marginRight = '10px';
             options.startScreen.numberOfCells.id = 'numberOfCellsId';
+
             for( var i = minField; i <= maxField; i++){
-                var optionElement = vm.elementFactory(options.startScreen.numberOfCells,'option');
+                var optionElement = document.createElement('option');
+                options.startScreen.numberOfCells.appendChild(optionElement);
                 optionElement.value = i;
                 optionElement.text = i + 'x' + i;
             }
             document.body.appendChild(options.startScreen.numberOfCells);
-            var startButton = vm.elementFactory(document.body,'button');
-            startButton.innerHTML = 'Start game';
-            startButton.onclick = start;
-        };
-        createStartScreen(3,10);
-        function start() {
-            options['playerStep'] = 1;
+        }
+        function createStartButton() {
+            options.startScreen.startButton = document.createElement('button');
+            document.body.appendChild(options.startScreen.startButton);
+            options.startScreen.startButton.innerHTML = 'Start game';
+            options.startScreen.startButton.onclick = start;
+        }
+
+        function takeValueOfFieldSizeSelector() {
             var target = document.getElementById("numberOfCellsId");
-            options.startScreen['selectedCells'] =  target.options[target.selectedIndex].value;
-            document.body.innerHTML = '';
-            options['lineSize'] = Math.floor( window.innerWidth / 3 );
-            vm.createField(options.startScreen.selectedCells, options.lineSize, action, gameField,document.body);
-            vm.setStyleForBlock(options.startScreen.selectedCells,options.lineSize, gameField);
-            options['bar'] = vm.elementFactory(document.body,'h1');
+            options.startScreen.selectedCells =  target.options[target.selectedIndex].value;
+        }
+        function createStatusBar() {
+            options.bar = document.createElement('h1');
+            document.body.appendChild(options.bar);
             TurnStatusInfo();
             options.bar.style.color = 'red'
-        };
+        }
         function action() {
             if(this.nodeName == 'DIV'){
                 options.stepCounter++;
-                var blockPositionX = this.id[0];
-                var blockPositionY = this.id[1];
-                gameField[blockPositionX][blockPositionY].element.innerHTML = step();
-                gameField[blockPositionX][blockPositionY].value = this.innerHTML;
+                gameField[this.y][this.x].element.innerHTML = step();
+                gameField[this.y][this.x].value = this.innerHTML;
                 TurnStatusInfo();
                 this.onclick = null;
                 checkGame();
@@ -110,7 +150,6 @@
         function TurnStatusInfo () {
             options.bar.innerHTML = 'Player ' + options.playerStep + ' turn'
         }
-
         function checkVertical (player) {
             var count = 0;
             for(var i = 0; i <= options.startScreen.selectedCells - 1; i++){
@@ -204,7 +243,8 @@
 
         };
         function restart() {
-            document.body.innerHTML = '';
+            vm.clearDocumentBody();
+
             createStartScreen(3,10);
             options = {};
             gameField = [];
@@ -223,6 +263,7 @@
         options.playerField = [];
         options.markingStep = 1;
         options.ships = [];
+        options.possibleShips = [];
         var vm = this;
         function startGame() {
             document.getElementById('startGame').onclick = newGame;
@@ -236,127 +277,14 @@
             options.cellSize = +options.cellSize + options.markingStep;
             generateField(options.playerField,'playerField');
             markField(options.playerField);
-            genMarine(options.playerField, options.cellSize);
+            cutField(options.playerField);
         }
-
-        function genMarine(field, cellSize) {
-            for(var i = 0; i < 4; i++){
-                genShip(field, 3);
-                console.log(i);
-            }
-
-        }
-        function genShip(field, shipSize) {
-            do{
-                var point = getRandomPoint(field);
-                checkPoint(point);
-            } while (point == false);
-            do{
-                var isRight = stepRightCheck(field, shipSize, point);
-                var isDown = stepDownCheck(field, shipSize, point);
-                var direction = chooseDirection(isRight, isDown);
-            } while (direction == false);
-
-            var newShip = putShip(direction.checker);
-            if(direction.stepTo == 'right'){
-                putHorizontalDeadZone(newShip, field)
-            }else {
-                putVerticalDeadZone(newShip, field)
-            }
-            options.ships.push(newShip);
-        }
-        function getRandomPoint(field) {
-            var randomX = getRandom(1, field.length - 1);
-            var randomY = getRandom(1, field.length - 1);
-            return checkPoint(field[randomX][randomY]);
-        }
-        function putShip(stepCoords) {
-            stepCoords.forEach(function (item, index, array) {
-                item.deck = {
-                    shipSize : array.length,
-                    deckNumber: index,
-                    isAlive: true
-                };
-                item.element.style.backgroundColor = 'blue'
-            });
-            return stepCoords
-        }
-        function putHorizontalDeadZone(ship, field) {
-            var StartX = ship[0].x - 1;
-            var StartY = ship[0].y - 1;
-            for(var y = 0; y <= 2; y++){
-                for(var x = 0; x <= ship.length + 1; x++){
-                    if((StartY + y) < field.length && (StartX + x) < field.length && !field[StartY + y][StartX + x].hasOwnProperty('deck')){
-                        field[StartY + y][StartX + x].deck = 'deadZone';
-                        field[StartY + y][StartX + x].element.style.backgroundColor = 'red';
-                    }
+        function cutField(field, step) {
+            for(var y = 1; y <= field.length -1; y++){
+                for(var x = 1; x <= field.length -1; x++){
+                    console.log(field[y][x].position);
                 }
             }
-
-        }
-        function putVerticalDeadZone(ship, field) {
-            var StartX = ship[0].x - 1;
-            var StartY = ship[0].y - 1;
-            for(var y = 0; y <= ship.length + 1; y++){
-                for(var x = 0; x <= 2; x++){
-                    if((StartY + y) < field.length && (StartX + x) < field.length && !field[StartY + y][StartX + x].hasOwnProperty('deck')){
-                        field[StartY + y][StartX + x].deck = 'deadZone';
-                        field[StartY + y][StartX + x].element.style.backgroundColor = 'red';
-                    }
-                }
-            }
-
-        }
-        function stepRightCheck(field, shipSize, point) {
-            var stepCoords = [];
-            if(point.x <= (field.length - shipSize)){
-                for(var step = point.x; step <= (point.x + shipSize - 1); step++){
-                    var stepPoint = field[point.y][step];
-                    if(checkPoint(stepPoint)){
-                        stepCoords.push(stepPoint);
-                    }
-                }
-                if(stepCoords.length == shipSize){
-                    return stepCoords
-                }
-            }
-            return false
-        }
-        function stepDownCheck(field, shipSize, point) {
-            var stepCoords = [];
-            if(point.y <= (field.length - shipSize)){
-                for(var step = point.y; step <= (point.y + shipSize - 1); step++){
-                    var stepPoint = field[step][point.x];
-                    if(checkPoint(stepPoint)){
-                        stepCoords.push(stepPoint);
-                    }
-                }
-                if(stepCoords.length == shipSize){
-                    return stepCoords
-                }
-            }
-            return false
-        }
-        function checkPoint(point) {
-            if(point.hasOwnProperty('deck')){
-                return false
-            }
-            return point
-        }
-        function chooseDirection(rightChecker, downChecker) {
-            var rightOrDown = getRandom(0,1);
-            var rightDirection = {
-                checker: rightChecker,
-                stepTo: 'right'
-            };
-            var downDirection = {
-                checker: downChecker,
-                stepTo: 'down'
-            };
-            if(rightChecker && downChecker){
-               return rightOrDown? rightDirection : downDirection;
-            }
-            return rightChecker? rightDirection: downChecker? downDirection: false;
         }
         function getRandom(min, max) {
             return min + Math.floor(Math.random() * (max + 1 - min));
@@ -403,7 +331,7 @@
         }
     }
     SeaWarGame.prototype = Object.create(Game.prototype);
-    // var xoGame = new XoGame();
-    var seaWarGame = new SeaWarGame();
+    var xoGame = new XoGame();
+    // var seaWarGame = new SeaWarGame();
 
 })();
