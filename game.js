@@ -43,7 +43,6 @@
         }
         var container = Game.prototype.createContainer(lineSize);
 
-
         Game.prototype.createFieldBlocks(cells, lineSize, fieldBlocks);
         for(var y = 0; y<= fieldBlocks.length - 1; y++){
             for(var x = 0; x <= fieldBlocks.length - 1; x++){
@@ -65,15 +64,14 @@
 
     function XoGame() {
         this.clearDocumentBody();
-        var gameField = [];
-        var vm = this;
-        var options = {
+        var gameField = [], vm = this, options = {
             startScreen: {},
             stepCounter: 0,
-            result: ''
+            result: '',
+            playerStep: 1,
+            lineSize: Math.floor( window.innerWidth / 3 )
         };
-        options.playerStep = 1;
-        options.lineSize = Math.floor( window.innerWidth / 3 );
+
         createStartScreen(3,10);
         function createStartScreen(minField, maxField){
             createTopic()
@@ -244,14 +242,15 @@
         };
         function restart() {
             vm.clearDocumentBody();
-
             createStartScreen(3,10);
             options = {};
             gameField = [];
             options = {
                 startScreen: {},
                 stepCounter: 0,
-                result: ''
+                result: '',
+                playerStep: 1,
+                lineSize: Math.floor( window.innerWidth / 3 )
             };
         };
 
