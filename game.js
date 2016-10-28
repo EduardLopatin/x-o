@@ -40,7 +40,7 @@
     Game.prototype.createField = function ( cells, lineSize, fieldBlocks, target ) {
         var container = Game.prototype.createContainer( lineSize );
 
-        if( arguments.length == 3 ){
+        if( arguments.length === 3 ){
             target = document.body;
         }
         Game.prototype.createFieldBlocks( cells, lineSize, fieldBlocks );
@@ -78,6 +78,7 @@
         function createStartScreen( minField, maxField ){
             createTopic();
             createSelectorOfFieldSize( minField, maxField );
+            createOptionsOfFieldSize( minField, maxField );
             createStartButton()
         }
         function start() {
@@ -99,7 +100,8 @@
             options.startScreen.numberOfCells = document.createElement('select');
             options.startScreen.numberOfCells.style.marginRight = '10px';
             options.startScreen.numberOfCells.id = 'numberOfCellsId';
-
+        }
+        function createOptionsOfFieldSize( minField, maxField ) {
             for( var i = minField; i <= maxField; i++ ){
                 var optionElement = document.createElement( 'option' );
                 options.startScreen.numberOfCells.appendChild( optionElement );
@@ -126,7 +128,7 @@
             options.bar.style.color = 'red'
         }
         function action() {
-            if( this.nodeName == 'DIV' ){
+            if( this.nodeName === 'DIV' ){
                 options.stepCounter++;
                 gameField[this.y][this.x].element.innerHTML = turnPlayerStep();
                 gameField[this.y][this.x].value = this.innerHTML;
@@ -135,7 +137,7 @@
                 checkGame();
             }
             function turnPlayerStep() {
-                if( options.playerStep == 1 ){
+                if( options.playerStep === 1 ){
                     options.playerStep = 2;
                     options.bar.style.color = 'blue';
                     return 'x';
@@ -153,11 +155,11 @@
             var count = 0;
             for( var i = 0; i <= options.startScreen.selectedCells - 1; i++ ){
                 gameField.forEach( function (block) {
-                    if( block[i].value == player){
+                    if( block[i].value === player){
                         count++
                     }
                 });
-                if( count == options.startScreen.selectedCells ){
+                if( count === +options.startScreen.selectedCells ){
                     options.result = player;
                     break;
                 }
@@ -168,11 +170,11 @@
             var count = 0;
             for( var i = 0; i <= gameField.length - 1; i++ ){
                 gameField[i].forEach( function (block) {
-                    if( block.value == player ){
+                    if( block.value === player ){
                         count++
                     }
                 });
-                if( count == options.startScreen.selectedCells ){
+                if( count === +options.startScreen.selectedCells ){
                     options.result = player;
                     break;
                 }
@@ -183,10 +185,10 @@
             var count = 0;
 
             for( var i = 0; i <= gameField.length - 1; i++ ){
-                if( gameField[i][i].value == player) {
+                if( gameField[i][i].value === player) {
                     count++
                 }
-                if( count == options.startScreen.selectedCells ){
+                if( count === +options.startScreen.selectedCells ){
                     options.result = player;
                     count = 0;
                     break;
@@ -199,10 +201,10 @@
             for( var i = 0; i <= gameField.length - 1; i++ ){
                 rightDiagonal.push( gameField[i].slice() );
                 rightDiagonal[i].reverse();
-                if( rightDiagonal[i][i].value == player ){
+                if( rightDiagonal[i][i].value === player ){
                     count++
                 }
-                if( count == options.startScreen.selectedCells ){
+                if( count === +options.startScreen.selectedCells ){
                     options.result = player;
                     count = 0;
                     break;
@@ -224,11 +226,11 @@
                 checkRightDiagonal('x');
                 checkRightDiagonal('o');
             }
-            if( ( options.stepCounter == options.startScreen.selectedCells * options.startScreen.selectedCells ) && options.result == '' ){
+            if( ( options.stepCounter === options.startScreen.selectedCells * options.startScreen.selectedCells ) && options.result === '' ){
                 alert( 'Friendship WON!' );
                 restart();
             }
-            if( options.result == 'x' || options.result == 'o' ){
+            if( options.result === 'x' || options.result === 'o' ){
                 showResult( options.result )
             }
         }
@@ -262,40 +264,39 @@
             var target = document.getElementById( 'playerField' );
             getCellSize();
             hideStartScreen();
-            addMarkingLinesToField();
             vm.createField( options.cellSize, options.lineSize, options.playerField, target );
-            markField( options.playerField );
-            // cutField( options.playerField );
-        }
+            getPossibleShipsCoords(4);
+            // marking
+            // addMarkingLinesToField();
+            // markField( options.playerField );
 
+        }
+        // nothing
+        // function getPossibleShipsCoords( shipSize ) {
+        //     options.possibleShips = options.playerField.map( function ( line ) {
+        //         return
+        //
+        //     });
+        //     console.log(options.possibleShips);
+        // }
         function setStartGameButton() {
             document.getElementById( 'startGame' ).onclick = newGame;
         }
         function hideStartScreen() {
             document.getElementById('startScreen').style.display = 'none';
         }
+        function getRandom( min, max ) {
+            return min + Math.floor( Math.random() * ( max + 1 - min ) );
+        }
+        function getCellSize() {
+            var target = document.getElementById( 'fieldSizeSelector' );
+            options['cellSize'] = target.options[target.selectedIndex].value;
+        }
         function addMarkingLinesToField() {
             options.cellSize = +options.cellSize + options.markingStep;
         }
-
-        function getRandom( min, max ) {
-            return min + Math.floor(Math.random() * (max + 1 - min));
-        }
-        function genAlphabet(cellSize) {
-            var start = 'А'.charCodeAt();
-            var end = 'Я'.charCodeAt();
-            var alphabet = [];
-            for( start; start <= end; start++ ){
-                alphabet.push( String.fromCharCode( start ) );
-                if( alphabet.length == cellSize - 2 ){
-                    break;
-                }
-            }
-            alphabet.splice( 6, 0, 'Ё' );
-            return alphabet;
-        }
-        function markField(field) {
-            var alphabet = genAlphabet(options.cellSize);
+        function markField( field ) {
+            var alphabet = genAlphabet( options.cellSize );
             alphabet.unshift( 'for[0][0] element' );
             field.forEach(function( block, index ){
                 field[index][0].element.innerHTML = index;
@@ -303,11 +304,20 @@
                 field[0][index].element.innerHTML = alphabet[index];
                 field[0][index].element.style.borderColor = 'white';
                 field[0][0].element.innerHTML = '';
-            })
-        }
-        function getCellSize() {
-            var target = document.getElementById( 'fieldSizeSelector' );
-            options['cellSize'] = target.options[target.selectedIndex].value;
+            });
+            function genAlphabet( cellSize ) {
+                var start = 'А'.charCodeAt();
+                var end = 'Я'.charCodeAt();
+                var alphabet = [];
+                for( start; start <= end; start++ ){
+                    alphabet.push( String.fromCharCode( start ) );
+                    if( alphabet.length === cellSize - 2 ){
+                        break;
+                    }
+                }
+                alphabet.splice( 6, 0, 'Ё' );
+                return alphabet;
+            }
         }
     }
     SeaWarGame.prototype = Object.create( Game.prototype );
