@@ -255,29 +255,29 @@
         options.markingStep = 1;
         options.ships = [];
         options.possibleShips = [];
+        options.lineSize = Math.floor(window.innerWidth / 3);
         vm = this;
-
-        function startGame() {
-            document.getElementById('startGame').onclick = newGame;
-        }
-        startGame();
+        setStartGameButton();
         function newGame() {
+            var target = document.getElementById( 'playerField' );
             getCellSize();
-            //hide start Screen
+            hideStartScreen();
+            addMarkingLinesToField();
+            vm.createField( options.cellSize, options.lineSize, options.playerField, target );
+            markField( options.playerField );
+            // cutField( options.playerField );
+        }
+
+        function setStartGameButton() {
+            document.getElementById( 'startGame' ).onclick = newGame;
+        }
+        function hideStartScreen() {
             document.getElementById('startScreen').style.display = 'none';
-            //add marking lines
+        }
+        function addMarkingLinesToField() {
             options.cellSize = +options.cellSize + options.markingStep;
-            generateField(options.playerField,'playerField');
-            markField(options.playerField);
-            cutField(options.playerField);
         }
-        function cutField(field, step) {
-            for(var y = 1; y <= field.length -1; y++){
-                for(var x = 1; x <= field.length -1; x++){
-                    console.log(field[y][x].position);
-                }
-            }
-        }
+
         function getRandom( min, max ) {
             return min + Math.floor(Math.random() * (max + 1 - min));
         }
@@ -291,39 +291,28 @@
                     break;
                 }
             }
-            alphabet.splice(6,0,'Ё');
+            alphabet.splice( 6, 0, 'Ё' );
             return alphabet;
         }
         function markField(field) {
-            var alphabetArray = genAlphabet(options.cellSize);
-            alphabetArray.unshift('for[0][0] element');
-            field.forEach(function(item,index,array){
-                array[index][0].element.innerHTML = index;
-                array[index][0].element.style.borderColor = 'white';
-                array[0][index].element.innerHTML = alphabetArray[index];
-                array[0][index].element.style.borderColor = 'white';
-                array[0][0].element.innerHTML = '';
+            var alphabet = genAlphabet(options.cellSize);
+            alphabet.unshift( 'for[0][0] element' );
+            field.forEach(function( block, index ){
+                field[index][0].element.innerHTML = index;
+                field[index][0].element.style.borderColor = 'white';
+                field[0][index].element.innerHTML = alphabet[index];
+                field[0][index].element.style.borderColor = 'white';
+                field[0][0].element.innerHTML = '';
             })
         }
-        function generateField(array,parentElementID) {
-            var lineWidth = Math.floor(window.innerWidth / 3);
-            vm.createField(
-                options.cellSize,
-                lineWidth,
-                '',
-                array,
-                document.getElementById(parentElementID));
-            vm.setStyleForBlock(options.cellSize, lineWidth, array);
-
-
-        }
         function getCellSize() {
-            var target = document.getElementById('fieldSizeSelector');
+            var target = document.getElementById( 'fieldSizeSelector' );
             options['cellSize'] = target.options[target.selectedIndex].value;
         }
     }
     SeaWarGame.prototype = Object.create( Game.prototype );
-    var xoGame = new XoGame();
-    // var seaWarGame = new SeaWarGame();
+
+    // var xoGame = new XoGame();
+    var seaWarGame = new SeaWarGame();
 
 })();
