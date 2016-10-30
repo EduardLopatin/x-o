@@ -1,4 +1,4 @@
-(function () {
+// (function () {
     function Game() {}
     Game.prototype.createContainer = function ( lineSize ) {
         var container = document.createElement( 'div' );
@@ -265,20 +265,89 @@
             getCellSize();
             hideStartScreen();
             vm.createField( options.cellSize, options.lineSize, options.playerField, target );
-            getPossibleShipsCoords(4);
+            createMarine();
             // marking
             // addMarkingLinesToField();
             // markField( options.playerField );
+            console.log(options);
+        }
+        function createMarine() {
+            genPossibleShips();
+            choosePossibleShip();
+            var ship = choosePossibleShip();
+            putShip(ship);
+            putDeadZoneAroundBlock(ship.blocks[0]);
 
         }
-        // nothing
-        // function getPossibleShipsCoords( shipSize ) {
-        //     options.possibleShips = options.playerField.map( function ( line ) {
-        //         return
-        //
-        //     });
-        //     console.log(options.possibleShips);
-        // }
+        function putDeadZoneAroundBlock(block){
+            for( var y = 0; y <= 2; y++){
+                for( var x = 0; x <= 2; x++){
+                    var deadZone = options.playerField[block.y - 1 + y][block.x - 1 + x];
+                    console.log(typeof deadZone);
+                    if(typeof deadZone != 'undefined'){
+                        deadZone.element.style.backgroundColor = 'blue'
+                    }
+                }
+            }
+        }
+        function putShip(ship) {
+            ship.blocks.forEach(function (block, index) {
+                options.playerField[block.y][block.x].element.style.backgroundColor = 'red';
+                options.playerField[block.y][block.x].deck = {
+                    number: index,
+                    parentBlock: ship.blocks[0]
+                };
+            });
+        }
+
+        function choosePossibleShip() {
+            var position = getRandom( 0, options.possibleShips.length );
+            return options.possibleShips[position];
+
+        }
+
+        function genPossibleShips() {
+            genPossibleShipsCoordsByHorizontal(4);
+            genPossibleShipsCoordsByVertical(4);
+        }
+
+        function genPossibleShipsCoordsByHorizontal( shipSize ) {
+            for( var y = 0; y <= options.cellSize - 1; y++ ){
+                for ( var x = 0; x <= options.cellSize -1 ; x++ ){
+                    var possibleShip = {
+                        blocks: [],
+                        direction: 'horizontal'
+                    };
+                    for( var step = 0; step <= shipSize - 1 && x <= options.cellSize - shipSize; step++ ){
+                       if(!options.playerField[y][x + step].hasOwnProperty('deck')){
+                           possibleShip.blocks.push(options.playerField[y][x + step])
+                       }
+
+                    }
+                    if(possibleShip.blocks.length > 0){
+                        options.possibleShips.push(possibleShip);
+                    }
+                }
+            }
+        }
+        function genPossibleShipsCoordsByVertical( shipSize ) {
+            for( var x = 0; x <= options.cellSize - 1; x++ ){
+                for ( var y = 0; y <= options.cellSize -1 ; y++ ){
+                    var newBlock = {
+                        blocks: [],
+                        direction: 'vertical'
+                    };
+                    for( var step = 0; step <= shipSize - 1 && y <= options.cellSize - shipSize; step++ ){
+                        if( !options.playerField[y + step][x].hasOwnProperty('deck') ){
+                            newBlock.blocks.push(options.playerField[y + step][x])
+                        }
+                    }
+                    if( newBlock.blocks.length > 0 ){
+                        options.possibleShips.push( newBlock );
+                    }
+                }
+            }
+        }
         function setStartGameButton() {
             document.getElementById( 'startGame' ).onclick = newGame;
         }
@@ -325,4 +394,4 @@
     // var xoGame = new XoGame();
     var seaWarGame = new SeaWarGame();
 
-})();
+// })();
