@@ -72,6 +72,18 @@
     Game.prototype.clearDocumentBody = function () {
         document.body.innerHTML = '';
     };
+    Game.prototype.getBlocksAroundBlock = function ( block, field , cellSize, blocks) {
+    for( var x = 0; x < 3; x++ ){
+        for( var y = 0; y < 3; y++ ){
+            var checkedX = (block.x - 1) + x;
+            var checkedY = (block.y - 1) + y;
+            if(checkedX >= 0 && checkedX < cellSize && checkedY >= 0 && checkedY < cellSize){
+                var checkedBlock = field[checkedX][checkedY];
+                blocks.push(checkedBlock);
+            }
+        }
+    }
+}
 
     function XoGame() {
         this.clearDocumentBody();
@@ -283,20 +295,41 @@
             getCellSize();
             hideStartScreen();
             vm.createField( options.cellSize, options.lineSize, options.playerField, target );
-            genShipsRateByFieldSize(options.cellSize);
+            genShipsRateByFieldSize( options.cellSize );
             genMarine( options.playerField, options.stackQuantity );
             declareActionOnField( options.playerField )
         }
         function declareActionOnField( field ) {
-            field.forEach(function (line) {
-                line.forEach(function (block) {
-                  // block.element.onclick  = shoot
+            field.forEach(function ( line ) {
+                line.forEach(function ( block ) {
+                  block.element.onclick  = shoot
                 })
             })
         }
-        // function shoot() {
-        //     options.playerField[this.x][this.y]
-        // }
+        function shoot() {
+            var target = options.playerField[this.x][this.y];
+            if(target.deck){
+                destroyDeck(target);
+            }
+            if(!target.deck){
+                target.element.innerHTML = 'o'
+            }
+            target.element.onclick = null;
+        }
+        function destroyDeck(block) {
+            block.element.innerHTML = 'x';
+            openSeaAroundDeck(block);
+
+        }
+        function openSeaAroundDeck(block) {
+            var blocksAroundDeck = [];
+            vm.getBlocksAroundBlock(block, options.playerField, options.cellSize, blocksAroundDeck);
+                blocksAroundDeck.forEach(function (block) {
+                if(!block.deck){
+                    block.element.innerHTML = 'o'
+                }
+            })
+        }
         function genMarine( field, stackQuantity ) {
             for( var x = 1; x <= stackQuantity; x++){
                 makeShipsBySize( 4, options.shipsStack.deck4, field );
@@ -317,8 +350,7 @@
             console.log(result);
             options.stackQuantity = result;
         }
-
-            function makeShipsBySize( shipSize, quantity, field ) {
+        function makeShipsBySize( shipSize, quantity, field ) {
             for( var i = 0; i < quantity; i++){
                 makePossibleShip( shipSize, field )
             }
@@ -333,25 +365,14 @@
         }
         function putDeadZoneAroundShip( ship, field ) {
             ship.forEach(function ( block ) {
-                putDeadZoneAroundBlock( block, field )
-            })
-        }
-        function putDeadZoneAroundBlock( block, field ) {
-            for( var x = 0; x < 3; x++ ){
-                for( var y = 0; y < 3; y++ ){
-                    var deadX = (block.x - 1) + x;
-                    var deadY = (block.y - 1) + y;
-                    if(deadX >= 0 && deadX < options.cellSize && deadY >= 0 && deadY < options.cellSize){
-                        var dead = field[deadX][deadY];
-                        if(checkBlock(dead)){
-                            dead.element.style.backgroundColor = 'blue'
-                            dead.deadZone = true;
-                        }
-
+                var blocksAroundDeck = [];
+                vm.getBlocksAroundBlock( block, field, options.cellSize, blocksAroundDeck );
+                blocksAroundDeck.forEach(function (block) {
+                    if(checkBlock(block)){
+                        block.deadZone = true;
                     }
-
-                }
-            }
+                });
+            })
         }
 
         function putShip( ship, field ) {
@@ -365,7 +386,7 @@
             })
         }
         function getRandomShip() {
-            var position = getRandom( 0, options.possibleShips.length );
+            var position = getRandom( 0, options.possibleShips.length - 1 );
             return options.possibleShips[position];
         }
         function genPossibleShipsCoords( field, shipSize ) {
