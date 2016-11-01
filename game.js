@@ -287,6 +287,7 @@
             deck1: 4
         };
         options.stackQuantity = 1;
+        options.ships = [];
         vm = this;
         setStartGameButton();
 
@@ -297,7 +298,7 @@
             vm.createField( options.cellSize, options.lineSize, options.playerField, target );
             genShipsRateByFieldSize( options.cellSize );
             genMarine( options.playerField, options.stackQuantity );
-            declareActionOnField( options.playerField )
+            declareActionOnField( options.playerField );
         }
         function declareActionOnField( field ) {
             field.forEach(function ( line ) {
@@ -310,21 +311,43 @@
             var target = options.playerField[this.x][this.y];
             if(target.deck){
                 destroyDeck(target);
+                checkShipsDestruction();
             }
             if(!target.deck){
                 target.element.innerHTML = 'o'
             }
             target.element.onclick = null;
         }
+        function checkShipsDestruction() {
+            options.ships.forEach(function ( ship ) {
+                var decksDestroyed = 0;
+                ship.forEach(function ( block ) {
+                    if( block.deck.isAlive == false ){
+                      decksDestroyed++
+                    }
+                    if( decksDestroyed === ship.length ){
+                        deleteShip( ship );
+                    }
+                })
+            })
+        }
+        function deleteShip( ship ) {
+            var shipIndex = options.ships.indexOf( ship );
+            ship.forEach(function (deck) {
+                deck.element.style.backgroundColor = 'red'
+            });
+            options.ships.splice( shipIndex, 1 );
+        }
         function destroyDeck(block) {
             block.element.innerHTML = 'x';
+            block.deck.isAlive = false;
             openSeaAroundDeck(block);
 
         }
-        function openSeaAroundDeck(block) {
+        function openSeaAroundDeck( block ) {
             var blocksAroundDeck = [];
-            vm.getBlocksAroundBlock(block, options.playerField, options.cellSize, blocksAroundDeck);
-                blocksAroundDeck.forEach(function (block) {
+            vm.getBlocksAroundBlock( block, options.playerField, options.cellSize, blocksAroundDeck );
+                blocksAroundDeck.forEach(function ( block ) {
                 if(!block.deck){
                     block.element.innerHTML = 'o'
                 }
@@ -360,15 +383,21 @@
             genPossibleShipsCoords( field, shipSize );
             var ship = getRandomShip();
             putDeadZoneAroundShip( ship, field );
+            //push created ship in options.ships
+            saveShip( ship );
+            //view
             putShip( ship, field );
             options.possibleShips = [];
+        }
+        function saveShip( ship ) {
+            options.ships.push( ship )
         }
         function putDeadZoneAroundShip( ship, field ) {
             ship.forEach(function ( block ) {
                 var blocksAroundDeck = [];
                 vm.getBlocksAroundBlock( block, field, options.cellSize, blocksAroundDeck );
-                blocksAroundDeck.forEach(function (block) {
-                    if(checkBlock(block)){
+                blocksAroundDeck.forEach(function ( block ) {
+                    if(checkBlock( block )){
                         block.deadZone = true;
                     }
                 });
@@ -378,11 +407,9 @@
         function putShip( ship, field ) {
             ship.forEach(function ( block ) {
                 var deck = {
-                    parentDeck: ship[0],
                     isAlive: true
                 };
                 field[block.x][block.y].deck = deck;
-                field[block.x][block.y].element.style.backgroundColor = 'red'
             })
         }
         function getRandomShip() {
