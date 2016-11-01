@@ -1,4 +1,4 @@
-// (function () {
+(function () {
 //                            Y
 //         ------------------->
 //         |
@@ -7,9 +7,6 @@
 //         |
 //         |
 //      X  V
-
-
-
     function Game() {}
     Game.prototype.createContainer = function ( lineSize ) {
         var container = document.createElement( 'div' );
@@ -277,7 +274,6 @@
         var options, vm;
         options = {};
         options.playerField = [];
-        options.markingStep = 1;
         options.possibleShips = [];
         options.lineSize = Math.floor( window.innerWidth / 3 );
         options.shipsStack = {
@@ -312,17 +308,35 @@
             if(target.deck){
                 destroyDeck(target);
                 checkShipsDestruction();
+                checkGame()
             }
             if(!target.deck){
                 target.element.innerHTML = 'o'
             }
             target.element.onclick = null;
         }
+        function checkGame() {
+            if(options.ships.length == 0){
+                alert('You Win! \n' +
+                    'Press \'Ok\' for New Game');
+                restart();
+            }
+        }
+        function restart() {
+            //clear field
+            document.getElementById('playerField').innerHTML = '';
+            //clear variables
+            options.playerField = [];
+            options.possibleShips = [];
+            options.stackQuantity = 1;
+            options.ships = [];
+            showStartScreen();
+        }
         function checkShipsDestruction() {
             options.ships.forEach(function ( ship ) {
                 var decksDestroyed = 0;
                 ship.forEach(function ( block ) {
-                    if( block.deck.isAlive == false ){
+                    if( block.deck.isAlive === false ){
                       decksDestroyed++
                     }
                     if( decksDestroyed === ship.length ){
@@ -333,48 +347,47 @@
         }
         function deleteShip( ship ) {
             var shipIndex = options.ships.indexOf( ship );
-            ship.forEach(function (deck) {
+            ship.forEach(function ( deck ) {
                 deck.element.style.backgroundColor = 'red'
             });
             options.ships.splice( shipIndex, 1 );
         }
-        function destroyDeck(block) {
+        function destroyDeck( block ) {
             block.element.innerHTML = 'x';
             block.deck.isAlive = false;
-            openSeaAroundDeck(block);
+            openSeaAroundDeck( block );
 
         }
         function openSeaAroundDeck( block ) {
             var blocksAroundDeck = [];
             vm.getBlocksAroundBlock( block, options.playerField, options.cellSize, blocksAroundDeck );
                 blocksAroundDeck.forEach(function ( block ) {
-                if(!block.deck){
+                if( !block.deck ){
                     block.element.innerHTML = 'o'
                 }
             })
         }
         function genMarine( field, stackQuantity ) {
-            for( var x = 1; x <= stackQuantity; x++){
+            for( var x = 1; x <= stackQuantity; x++ ){
                 makeShipsBySize( 4, options.shipsStack.deck4, field );
                 makeShipsBySize( 3, options.shipsStack.deck3, field );
                 makeShipsBySize( 2, options.shipsStack.deck2, field );
                 makeShipsBySize( 1, options.shipsStack.deck1, field )
             }
         }
-        function genShipsRateByFieldSize(cellSize) {
-            var blocksQuantity = cellSize * cellSize;
+        function genShipsRateByFieldSize( cellSize ) {
+            var blocks = cellSize * cellSize;
             var stacksQuantity = 0;
             // ships must use +-20% of field
             var rate = 5;
             var blocksForDecks = 20;
 
-            var result = blocksQuantity / rate / 20;
-            result = result.toFixed(0);
-            console.log(result);
-            options.stackQuantity = result;
+            stacksQuantity = blocks / rate / blocksForDecks;
+            stacksQuantity = stacksQuantity.toFixed( 0 );
+            options.stackQuantity = stacksQuantity;
         }
         function makeShipsBySize( shipSize, quantity, field ) {
-            for( var i = 0; i < quantity; i++){
+            for( var i = 0; i < quantity; i++ ){
                 makePossibleShip( shipSize, field )
             }
         }
@@ -396,20 +409,22 @@
             ship.forEach(function ( block ) {
                 var blocksAroundDeck = [];
                 vm.getBlocksAroundBlock( block, field, options.cellSize, blocksAroundDeck );
-                blocksAroundDeck.forEach(function ( block ) {
-                    if(checkBlock( block )){
-                        block.deadZone = true;
-                    }
-                });
+                markDeadZoneBlocks( blocksAroundDeck )
             })
         }
-
-        function putShip( ship, field ) {
+        function markDeadZoneBlocks( blocks ) {
+            blocks.forEach(function ( block ) {
+                if(checkBlock( block )){
+                    block.deadZone = true;
+                }
+            });
+        }
+        function putShip( ship ) {
             ship.forEach(function ( block ) {
                 var deck = {
                     isAlive: true
                 };
-                field[block.x][block.y].deck = deck;
+                block.deck = deck;
             })
         }
         function getRandomShip() {
@@ -445,11 +460,11 @@
             var possibleShip = [];
             for( var step = 0; step < shipSize; step++ ){
                 var possibleDeck = field[x][y + step];
-                if(checkBlock(possibleDeck)){
-                    possibleShip.push(possibleDeck);
+                if(checkBlock( possibleDeck )){
+                    possibleShip.push( possibleDeck );
                 }
             }
-            if(possibleShip.length == shipSize){
+            if( possibleShip.length == shipSize ){
                 return possibleShip
             }
             else {
@@ -460,11 +475,11 @@
             var possibleShip = [];
             for( var step = 0; step < shipSize; step++ ){
                 var possibleDeck = field[x + step][y];
-                if(checkBlock(possibleDeck)){
-                    possibleShip.push(possibleDeck);
+                if( checkBlock( possibleDeck ) ){
+                    possibleShip.push( possibleDeck );
                 }
             }
-            if(possibleShip.length == shipSize){
+            if( possibleShip.length == shipSize ){
                 return possibleShip
             }
             else {
@@ -473,7 +488,7 @@
         }
 
         function checkBlock( block ) {
-            if(!block.deck && !block.deadZone){
+            if( !block.deck && !block.deadZone ){
                 return true
             }
         }
@@ -482,7 +497,10 @@
             document.getElementById( 'startGame' ).onclick = newGame;
         }
         function hideStartScreen() {
-            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById( 'startScreen' ).style.display = 'none';
+        }
+        function showStartScreen() {
+            document.getElementById( 'startScreen' ).style.display = 'block';
         }
         function getRandom( min, max ) {
             return min + Math.floor( Math.random() * ( max + 1 - min ) );
@@ -497,4 +515,4 @@
     // var xoGame = new XoGame();
     var seaWarGame = new SeaWarGame();
 
-// })();
+})();
